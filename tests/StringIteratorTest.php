@@ -35,7 +35,6 @@ class StringIteratorTest extends TestCase
                 case 5:
                     $this->assertEquals('r', $current);
                     break;
-
             }
 
             $iterator->next();
@@ -68,7 +67,6 @@ class StringIteratorTest extends TestCase
                 case 5:
                     $this->assertEquals('r', $next);
                     break;
-
             }
         }
     }
