@@ -1,0 +1,30 @@
+{
+    "name": "snout/snout",
+    "type": "library",
+    "description": "Snout is a PHP request router",
+    "keywords": ["http", "rest", "web service", "router"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Franz Neulist Carroll",
+            "email": "franzneulistcarroll@gmail.com",
+            "homepage": "https://github.com/rubberydub"
+        }
+    ],
+    "require": {
+        "php": ">=7.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Snout\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Snout\\Tests\\": "tests/"
+        }
+    }
+}
