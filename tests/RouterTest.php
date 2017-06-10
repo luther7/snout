@@ -9,6 +9,6 @@ class RouterTest extends TestCase
     public function testTest()
     {
         $router = new Router();
-        $router->route('/test/');
+        $router->route('/test', 'GET');
     }
 }
