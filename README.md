@@ -1,2 +1,3 @@
 # snout
-Router.
+
+Snout is a PHP request router.
