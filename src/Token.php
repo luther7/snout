@@ -7,17 +7,57 @@ namespace Snout;
 class Token
 {
     /**
-     * @const END
+     * @const Ending token.
      */
     const END = 'END';
 
     /**
-     * @const STRING
+     * @const Digit token.
      */
-    const STRING = 'STRING';
+    const DIGIT = 'DIGIT';
 
     /**
-     * @const INTEGER
+     * @const Alpha token.
      */
-    const INTEGER = 'INTEGER';
+    const ALPHA = 'ALPHA';
+
+    /**
+     * @const Forward slash token.
+     */
+    const FORWARD_SLASH = 'FORWARD_SLASH';
+
+    /**
+     * @const Underscore token.
+     */
+    const UNDERSCORE = 'UNDERSCORE';
+
+    /**
+     * @const Hyphen token.
+     */
+    const HYPHEN = 'HYPHEN';
+
+    /**
+     * @const Back slash token.
+     */
+    const BACK_SLASH = 'BACK_SLASH';
+
+    /**
+     * @const Space token.
+     */
+    const SPACE = 'SPACE';
+
+    /**
+     * @const Tab token.
+     */
+    const TAB = 'TAB';
+
+    /**
+     * @const New line token.
+     */
+    const NEW_LINE = 'NEW_LINE';
+
+    /**
+     * @const Carriage return token.
+     */
+    const CARRIAGE_RETURN = 'CARRIAGE_RETURN';
 }

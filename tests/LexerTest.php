@@ -7,75 +7,65 @@ use Snout\Token;
 
 class LexerTest extends TestCase
 {
-    public function testLeadingSlash()
-    {
-        $lexer = new Lexer('/foo');
-
-        $this->assertEquals(1, $lexer->getCount());
-        $this->assertEquals(Token::STRING, $lexer->getToken());
-        $this->assertTrue($lexer->hasPayload());
-        $this->assertEquals('foo', $lexer->getPayload());
-
-        $lexer->next();
-
-        $this->assertEquals(2, $lexer->getCount());
-        $this->assertEquals(Token::END, $lexer->getToken());
-        $this->assertFalse($lexer->hasPayload());
-    }
-
-    public function testNoLeadingSlash()
-    {
-        $lexer = new Lexer('foo');
-
-        $this->assertEquals(1, $lexer->getCount());
-        $this->assertEquals(Token::STRING, $lexer->getToken());
-        $this->assertTrue($lexer->hasPayload());
-        $this->assertEquals('foo', $lexer->getPayload());
-
-        $lexer->next();
-
-        $this->assertEquals(2, $lexer->getCount());
-        $this->assertEquals(Token::END, $lexer->getToken());
-        $this->assertFalse($lexer->hasPayload());
-    }
-
     public function testLexer()
     {
-        $lexer = new Lexer('/foo/bar/1234/baz');
+        $lexer = new Lexer('/foo_\989bar-');
 
-        while ($lexer->getToken() !== Token::END) {
-            switch ($lexer->getCount()) {
-                case 1:
-                    $this->assertEquals(Token::STRING, $lexer->getToken());
-                    $this->assertTrue($lexer->hasPayload());
-                    $this->assertEquals('foo', $lexer->getPayload());
-                    break;
+        $this->assertEquals(1, $lexer->getTokenCount());
+        $this->assertEquals(1, $lexer->getCharCount());
+        $this->assertEquals(Token::FORWARD_SLASH, $lexer->getToken());
+        $this->assertFalse($lexer->hasPayload());
 
-                case 2:
-                    $this->assertEquals(Token::STRING, $lexer->getToken());
-                    $this->assertTrue($lexer->hasPayload());
-                    $this->assertEquals('bar', $lexer->getPayload());
-                    break;
+        $lexer->next();
 
-                case 3:
-                    $this->assertEquals(Token::INTEGER, $lexer->getToken());
-                    $this->assertTrue($lexer->hasPayload());
-                    $this->assertEquals(1234, $lexer->getPayload());
-                    break;
+        $this->assertEquals(2, $lexer->getTokenCount());
+        $this->assertEquals(4, $lexer->getCharCount());
+        $this->assertEquals(Token::ALPHA, $lexer->getToken());
+        $this->assertTrue($lexer->hasPayload());
+        $this->assertEquals('foo', $lexer->getPayload());
 
-                case 4:
-                    $this->assertEquals(Token::STRING, $lexer->getToken());
-                    $this->assertTrue($lexer->hasPayload());
-                    $this->assertEquals('baz', $lexer->getPayload());
-                    break;
+        $lexer->next();
 
-                case 5:
-                    $this->assertEquals(Token::END, $lexer->getToken());
-                    $this->assertFalse($lexer->hasPayload());
-                    break;
-            }
+        $this->assertEquals(3, $lexer->getTokenCount());
+        $this->assertEquals(5, $lexer->getCharCount());
+        $this->assertEquals(Token::UNDERSCORE, $lexer->getToken());
+        $this->assertFalse($lexer->hasPayload());
 
-            $lexer->next();
-        }
+        $lexer->next();
+
+        $this->assertEquals(4, $lexer->getTokenCount());
+        $this->assertEquals(6, $lexer->getCharCount());
+        $this->assertEquals(Token::BACK_SLASH, $lexer->getToken());
+        $this->assertFalse($lexer->hasPayload());
+
+        $lexer->next();
+
+        $this->assertEquals(5, $lexer->getTokenCount());
+        $this->assertEquals(9, $lexer->getCharCount());
+        $this->assertEquals(Token::DIGIT, $lexer->getToken());
+        $this->assertTrue($lexer->hasPayload());
+        $this->assertEquals(989, $lexer->getPayload());
+
+        $lexer->next();
+
+        $this->assertEquals(6, $lexer->getTokenCount());
+        $this->assertEquals(12, $lexer->getCharCount());
+        $this->assertEquals(Token::ALPHA, $lexer->getToken());
+        $this->assertTrue($lexer->hasPayload());
+        $this->assertEquals('bar', $lexer->getPayload());
+
+        $lexer->next();
+
+        $this->assertEquals(7, $lexer->getTokenCount());
+        $this->assertEquals(13, $lexer->getCharCount());
+        $this->assertEquals(Token::HYPHEN, $lexer->getToken());
+        $this->assertFalse($lexer->hasPayload());
+
+        $lexer->next();
+
+        $this->assertEquals(8, $lexer->getTokenCount());
+        $this->assertEquals(13, $lexer->getCharCount());
+        $this->assertEquals(Token::END, $lexer->getToken());
+        $this->assertFalse($lexer->hasPayload());
     }
 }

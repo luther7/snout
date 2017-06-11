@@ -11,48 +11,46 @@ use \Snout\Utilities\StringIterator;
 class Lexer
 {
     /**
-     * @const DELIMITER Lexing delimiter. URL paths are delimited with '/'.
-     */
-    const DELIMITER = '/';
-
-    /**
-     * @var StringIterator Source.
+     * @var StringIterator $source
      */
     private $source;
 
     /**
-     * @var string Current token.
+     * @var array $tokens
      */
-    private $token;
+    private $tokens;
 
     /**
-     * @var bool Payload flag.
+     * @var bool $has_payload Payload flag.
      */
     private $has_payload;
 
     /**
-     * @var string Current payload.
+     * @var array $payloads
      */
-    private $payload;
+    private $payloads;
 
     /**
-     * @var int Count.
+     * @var int $token_count
      */
-    private $count;
+    private $token_count;
 
     /**
-     * @param string $path Path for lexing.
+     * @var int $payload_count
      */
-    public function __construct(string $path)
+    private $payload_count;
+
+    /**
+     * @param string $source
+     */
+    public function __construct(string $source)
     {
-        $this->source = new StringIterator($path);
-        $this->count = 0;
+        $this->source = new StringIterator($source);
+        $this->tokens = [];
         $this->has_payload = false;
-
-        // If the path has a leading delimiter move past it.
-        if ($this->source->valid() && $this->source->current() === self::DELIMITER) {
-            $this->source->next();
-        }
+        $this->payloads = [];
+        $this->token_count = 0;
+        $this->payload_count = 0;
 
         // Scan first token.
         $this->next();
@@ -63,7 +61,7 @@ class Lexer
      */
     public function getToken() : string
     {
-        return $this->token;
+        return $this->tokens[$this->token_count - 1];
     }
 
     /**
@@ -85,94 +83,154 @@ class Lexer
             throw new LexerException('No current payload.');
         }
 
-        return $this->payload;
+        return $this->payloads[$this->payload_count - 1];
     }
 
     /**
-     * @return int Count.
+     * @return int Token count.
      */
-    public function getCount() : int
+    public function getTokenCount() : int
     {
-        return $this->count;
+        return $this->token_count;
+    }
+
+    /**
+     * @return int Payload count.
+     */
+    public function getPayloadCount() : int
+    {
+        return $this->payload_count;
+    }
+
+    /**
+     * @return int Char count.
+     */
+    public function getCharCount() : int
+    {
+        return $this->source->key();
     }
 
     /**
      * Scan the next token.
      *
-     * @throws \Snout\Exceptions\LexerException On encountering a disallowed char.
-     *
      * @return void
      */
     public function next()
     {
-        $this->has_payload = false;
-        $this->count++;
-        $token = null;
-        $payload = '';
-
         if (!$this->source->valid()) {
-            $this->token = Token::END;
+            $this->setResult(Token::END);
 
             return;
         }
 
-        // Scan by char to the next token.
-        do {
-            $char = $this->source->current();
+        $digit_check = function ($char) {
+            return ctype_digit($char);
+        };
 
-            if ($char === self::DELIMITER) {
-                // Move past the delimiter.
-                $this->source->next();
+        if (($payload = $this->scan($digit_check)) !== '') {
+            $this->setResult(Token::DIGIT, (int) $payload);
 
-                break;
-            }
+            return;
+        }
 
-            switch ($char) {
-                case ' ':
-                case "\n":
-                case "\t":
-                case "\r":
-                    // TODO configurable disallowed chars?
-                    throw new LexerException('Whitespace in path.');
-                    break;
+        $alpha_check = function ($char) {
+            return ctype_alpha($char);
+        };
 
-                case '0':
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9':
-                    // Numeric. Type is integer if it is not already a string.
-                    if ($token === null) {
-                        $token = Token::INTEGER;
-                    }
+        if (($payload = $this->scan($alpha_check)) !== '') {
+            $this->setResult(Token::ALPHA, $payload);
 
-                    break;
+            return;
+        }
 
-                default:
-                    // Not numeric - always a string.
-                    $token = Token::STRING;
-                    break;
-            }
+        $char = $this->source->current();
+        $this->source->next();
 
+        switch ($char) {
+            case '/':
+                $this->setResult(Token::FORWARD_SLASH);
+                return;
+
+            case '_':
+                $this->setResult(Token::UNDERSCORE);
+                return;
+
+            case '-':
+                $this->setResult(Token::HYPHEN);
+                return;
+
+            case '\\':
+                $this->setResult(Token::BACK_SLASH);
+                return;
+
+            case ' ':
+                $this->setResult(Token::SPACE);
+                return;
+
+            case "\t":
+                $this->setResult(Token::TAB);
+                return;
+
+            case "\n":
+                $this->setResult(Token::NEW_LINE);
+                return;
+
+            case "\r":
+                $this->setResult(Token::CARRIAGE_RETURN);
+                return;
+
+            default:
+                throw new LexerException(
+                    "Unexpected character: '{$char}'. At {$this->getCharCount()}."
+                );
+        }
+    }
+
+    /**
+     * Scan a payload of chars satisfying a check.
+     *
+     * @param callable $check   Closure to check chars while scanning.
+     * @param string   $payload Scanned payload.
+     *
+     * @return string The scanned payload.
+     */
+    private function scan(callable $check, string $payload = '') : string
+    {
+        if (!$this->source->valid()) {
+            return $payload;
+        }
+
+        $char = $this->source->current();
+
+        if ($check($char)) {
             $payload .= $char;
-
             $this->source->next();
-        } while ($this->source->valid());
 
-        $this->token = $token;
-        $this->has_payload = !empty($payload);
+            return $this->scan($check, $payload);
+        }
 
-        if ($this->has_payload) {
-            if ($token === Token::INTEGER) {
-                $token = (int) $token;
-            }
+        return $payload;
+    }
 
-            $this->payload = $payload;
+    /**
+     * Set scanned token and payload.
+     *
+     * @param string      $token   The token to set.
+     * @param string|null $payload The payload to set.
+     *
+     * @return void
+     */
+    private function setResult(string $token, string $payload = null)
+    {
+        $this->tokens[] = $token;
+        $this->token_count++;
+
+        if ($payload !== null) {
+            $this->payloads[] = $payload;
+            $this->has_payload = true;
+            $this->payload_count++;
+        } else {
+            $this->has_payload = false;
         }
     }
 }
