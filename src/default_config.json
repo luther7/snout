@@ -1,0 +1,11 @@
+{
+    "router": {
+        "delimiter": "FORWARD_SLASH",
+        "invalid": [
+            "SPACE",
+            "TAB",
+            "NEW_LINE",
+            "CARRIAGE_RETURN"
+        ]
+    }
+}

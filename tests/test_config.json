@@ -1,0 +1,11 @@
+{
+    "foo": "bar",
+    "baz": {
+        "snap": [
+            "pop",
+            1234,
+            true,
+            false
+        ]
+    }
+}
