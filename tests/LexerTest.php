@@ -88,4 +88,26 @@ class LexerTest extends TestCase
         $this->assertEquals(Token::END, $lexer->getToken());
         $this->assertFalse($lexer->hasPayload());
     }
+
+    /**
+     * @expectedException Snout\Exceptions\LexerException
+     */
+    public function testLexerNoPayloadException()
+    {
+        $lexer = new Lexer("/");
+
+        $this->assertEquals(1, $lexer->getTokenCount());
+        $this->assertEquals(1, $lexer->getCharCount());
+        $this->assertEquals(Token::FORWARD_SLASH, $lexer->getToken());
+        $this->assertFalse($lexer->hasPayload());
+        $lexer->getPayload();
+    }
+
+    /**
+     * @expectedException Snout\Exceptions\LexerException
+     */
+    public function testLexerUnexpectedCharException()
+    {
+        $lexer = new Lexer("'");
+    }
 }
