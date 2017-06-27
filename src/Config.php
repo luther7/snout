@@ -28,10 +28,10 @@ class Config
      */
     public function __construct(string $path = null)
     {
-        $this->path = $path ?? __DIR__ . self::DEFAULT_PATH;
+        $this->path = $path ?? __DIR__ . '/' . self::DEFAULT_PATH;
 
         try {
-            $config = file_get_contents($path);
+            $config = file_get_contents($this->path);
             $config = json_decode($config, true);
 
             if ($config === null) {
@@ -73,7 +73,7 @@ class Config
      * @param string|array $option An option or an array of option value pairs.
      * @param mixed        $value  A value or null
      *
-     * @return mixed
+     * @return void
      */
     public function set($option, $value = null)
     {
@@ -82,7 +82,7 @@ class Config
                 throw new \InvalidArgumentException("Second argument 'value' required.");
             }
 
-            $option = ['option' => $value];
+            $option = [$option => $value];
         } elseif (!is_array($option)) {
             throw new \InvalidArgumentException(
                 "Argument 'option' must be a string or an array of option value pairs."
