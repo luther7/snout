@@ -6,7 +6,7 @@ class FunctionsTest extends TestCase
     public function testDecodeFile()
     {
         $test_config = \Snout\json_decode_file(
-            __DIR__ . '/test_configs/test.json',
+            __DIR__ . '/configs/misc.json',
             true
         );
 
@@ -34,7 +34,7 @@ class FunctionsTest extends TestCase
     public function testInvalidJSONException()
     {
         $test_config = \Snout\json_decode_file(
-            __DIR__ . '/test_configs/test_invalid.json',
+            __DIR__ . '/configs/invalid.json',
             true
         );
     }
@@ -42,7 +42,7 @@ class FunctionsTest extends TestCase
     public function testInvalidJSONNull()
     {
         $test_config = \Snout\json_decode_file(
-            __DIR__ . '/test_configs/test_config_invalid.json',
+            __DIR__ . '/configs/invalid.json',
             true,
             false
         );

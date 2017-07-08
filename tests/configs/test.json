@@ -1,8 +1,5 @@
 {
-    "router": {
-        "delimiter": "FORWARD_SLASH"
-    },
-
+    "delimiter": "FORWARD_SLASH",
     "parser": {
         "invalid": [
             "SPACE",

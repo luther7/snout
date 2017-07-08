@@ -10,7 +10,7 @@ class ConfigTest extends TestCase
     public function testGet()
     {
         $test_config = \Snout\json_decode_file(
-            __DIR__ . '/test_configs/test.json',
+            __DIR__ . '/configs/misc.json',
             true
         );
 
@@ -33,7 +33,7 @@ class ConfigTest extends TestCase
     public function testSet()
     {
         $test_config = \Snout\json_decode_file(
-            __DIR__ . '/test_configs/test.json',
+            __DIR__ . '/configs/misc.json',
             true
         );
 
@@ -60,7 +60,7 @@ class ConfigTest extends TestCase
         );
 
         $test_config = \Snout\json_decode_file(
-            __DIR__ . '/test_configs/test.json',
+            __DIR__ . '/configs/misc.json',
             true
         );
 
@@ -76,7 +76,7 @@ class ConfigTest extends TestCase
         );
 
         $test_config = \Snout\json_decode_file(
-            __DIR__ . '/test_configs/test.json',
+            __DIR__ . '/configs/misc.json',
             true
         );
 
@@ -93,7 +93,7 @@ class ConfigTest extends TestCase
         );
 
         $test_config = \Snout\json_decode_file(
-            __DIR__ . '/test_configs/test.json',
+            __DIR__ . '/configs/misc.json',
             true
         );
 
@@ -108,7 +108,7 @@ class ConfigTest extends TestCase
         $this->expectExceptionMessage("Second argument 'value' required.");
 
         $test_config = \Snout\json_decode_file(
-            __DIR__ . '/test_configs/test.json',
+            __DIR__ . '/configs/misc.json',
             true
         );
 

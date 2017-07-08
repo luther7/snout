@@ -13,7 +13,7 @@ class ParserTest extends TestCase
     public function test()
     {
         $config = \Snout\json_decode_file(
-            __DIR__ . '/../src/default_config.json',
+            __DIR__ . '/configs/test.json',
             true
         );
 
@@ -38,7 +38,7 @@ class ParserTest extends TestCase
         );
 
         $config = \Snout\json_decode_file(
-            __DIR__ . '/../src/default_config.json',
+            __DIR__ . '/configs/test.json',
             true
         );
 
@@ -59,7 +59,7 @@ class ParserTest extends TestCase
         $this->expectExceptionMessage("Invalid token 'SPACE'. At char 1.");
 
         $config = \Snout\json_decode_file(
-            __DIR__ . '/../src/default_config.json',
+            __DIR__ . '/configs/test.json',
             true
         );
 
