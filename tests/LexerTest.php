@@ -2,6 +2,7 @@
 namespace Snout\Tests;
 
 use \PHPUnit\Framework\TestCase;
+use Snout\Exceptions\LexerException;
 use Snout\Lexer;
 use Snout\Token;
 
@@ -89,11 +90,11 @@ class LexerTest extends TestCase
         $this->assertFalse($lexer->hasPayload());
     }
 
-    /**
-     * @expectedException Snout\Exceptions\LexerException
-     */
     public function testLexerNoPayloadException()
     {
+        $this->expectException(LexerException::class);
+        $this->expectExceptionMessage('No current payload.');
+
         $lexer = new Lexer("/");
 
         $this->assertEquals(1, $lexer->getTokenCount());
@@ -103,11 +104,11 @@ class LexerTest extends TestCase
         $lexer->getPayload();
     }
 
-    /**
-     * @expectedException Snout\Exceptions\LexerException
-     */
     public function testLexerUnexpectedCharException()
     {
+        $this->expectException(LexerException::class);
+        $this->expectExceptionMessage("Unexpected character: '''. At 1.");
+
         $lexer = new Lexer("'");
     }
 }

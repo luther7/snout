@@ -62,13 +62,13 @@ class Parser
 
         if (in_array($token, $this->invalid)) {
             throw new ParserException(
-                "Invalid {$token}. At char {$current_char}."
+                "Invalid token '{$token}'. At char {$current_char}."
             );
         }
 
         if ($token !== $valid) {
             throw new ParserException(
-                "Unexpected {$token}. Expecting {$valid}. "
+                "Unexpected token '{$token}'. Expecting token '{$valid}'. "
                 . "At char {$current_char}."
             );
         }

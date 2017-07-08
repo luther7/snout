@@ -2,11 +2,11 @@
 namespace Snout\Tests;
 
 use \PHPUnit\Framework\TestCase;
+use Snout\Exceptions\ParserException;
 use Snout\Token;
 use Snout\Config;
 use Snout\Lexer;
 use Snout\Parser;
-use Snout\Exceptions\ParserException;
 
 class ParserTest extends TestCase
 {
@@ -30,11 +30,13 @@ class ParserTest extends TestCase
         $this->assertNull($parser->accept(Token::BACK_SLASH));
     }
 
-    /**
-     * @expectedException Snout\Exceptions\ParserException
-     */
     public function testUnacceptableToken()
     {
+        $this->expectException(ParserException::class);
+        $this->expectExceptionMessage(
+            "Unexpected token 'ALPHA'. Expecting token 'DIGIT'. At char 1."
+        );
+
         $config = \Snout\json_decode_file(
             __DIR__ . '/../src/default_config.json',
             true
@@ -53,6 +55,9 @@ class ParserTest extends TestCase
     */
     public function testInvalidToken()
     {
+        $this->expectException(ParserException::class);
+        $this->expectExceptionMessage("Invalid token 'SPACE'. At char 1.");
+
         $config = \Snout\json_decode_file(
             __DIR__ . '/../src/default_config.json',
             true

@@ -2,8 +2,8 @@
 namespace Snout\Tests;
 
 use \PHPUnit\Framework\TestCase;
-use Snout\Config;
 use Snout\Exceptions\ConfigException;
+use Snout\Config;
 
 class ConfigTest extends TestCase
 {
@@ -52,11 +52,13 @@ class ConfigTest extends TestCase
         $this->assertEquals(9123, $test['bird']);
     }
 
-    /**
-     * @expectedException \Snout\Exceptions\ConfigException
-     */
     public function testAssertException()
     {
+        $this->expectException(ConfigException::class);
+        $this->expectExceptionMessage(
+            "Required config value is missing: crack."
+        );
+
         $test_config = \Snout\json_decode_file(
             __DIR__ . '/test_configs/test.json',
             true
@@ -66,11 +68,13 @@ class ConfigTest extends TestCase
         $config->get('crack', true);
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testGetInvalidArgument()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            "Argument 'option' must be a string or an array of strings."
+        );
+
         $test_config = \Snout\json_decode_file(
             __DIR__ . '/test_configs/test.json',
             true
@@ -80,11 +84,14 @@ class ConfigTest extends TestCase
         $config->get(1234);
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
-    public function testSetInvalidArgument()
+    public function testSetInvalidArgument1()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            "Argument 'option' must be a string or an array of option value "
+            . "pairs."
+        );
+
         $test_config = \Snout\json_decode_file(
             __DIR__ . '/test_configs/test.json',
             true
@@ -93,5 +100,20 @@ class ConfigTest extends TestCase
         $config = new Config($test_config);
 
         $config->set(1234);
+    }
+
+    public function testSetInvalidArgument2()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Second argument 'value' required.");
+
+        $test_config = \Snout\json_decode_file(
+            __DIR__ . '/test_configs/test.json',
+            true
+        );
+
+        $config = new Config($test_config);
+
+        $config->set('foo');
     }
 }

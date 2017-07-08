@@ -2,8 +2,8 @@
 namespace Snout;
 
 use \Snout\Exceptions\LexerException;
-use \Snout\Token;
 use \Snout\Utilities\StringIterator;
+use \Snout\Token;
 
 /**
  * Lexer.
