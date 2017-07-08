@@ -58,18 +58,21 @@ class Parser
     public function accept(string $valid)
     {
         $token = $this->lexer->getToken();
-        $current_char = $this->lexer->getCharCount();
 
         if (in_array($token, $this->invalid)) {
+            $column = $this->lexer->getColumn();
+
             throw new ParserException(
-                "Invalid token '{$token}'. At char {$current_char}."
+                "Invalid token '{$token}'. At char {$column}."
             );
         }
 
         if ($token !== $valid) {
+            $column = $this->lexer->getColumn();
+
             throw new ParserException(
                 "Unexpected token '{$token}'. Expecting token '{$valid}'. "
-                . "At char {$current_char}."
+                . "At char {$column}."
             );
         }
 

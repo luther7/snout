@@ -41,6 +41,11 @@ class Lexer
     private $payload_count;
 
     /**
+     * @var int $column Char column of last consumed token.
+     */
+    private $column;
+
+    /**
      * @param string $source
      */
     public function __construct(string $source)
@@ -51,6 +56,7 @@ class Lexer
         $this->payloads = [];
         $this->token_count = 0;
         $this->payload_count = 0;
+        $this->column = 1;
 
         // Scan first token.
         $this->next();
@@ -111,6 +117,14 @@ class Lexer
     }
 
     /**
+     * @return int Char column of last consumed token.
+     */
+    public function getColumn() : int
+    {
+        return $this->column;
+    }
+
+    /**
      * Scan the next token.
      *
      * @return void
@@ -118,10 +132,13 @@ class Lexer
     public function next()
     {
         if (!$this->source->valid()) {
+            $this->column = $this->source->key();
             $this->setResult(Token::END);
 
             return;
         }
+
+        $this->column = $this->source->key() + 1;
 
         $digit_check = function ($char) {
             return ctype_digit($char);
