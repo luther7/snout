@@ -9,44 +9,22 @@ use \Snout\Exceptions\ConfigException;
 class Config
 {
     /**
-     * @const string DEFAULT_PATH
-     */
-    const DEFAULT_PATH = 'default_config.json';
-
-    /**
-     * @var string $path
-     */
-    private $path;
-
-    /**
      * @var array $config
      */
     private $config;
 
     /**
-     * @param string $path
+     * @param array $config
      */
-    public function __construct(string $path = null)
+    public function __construct(array $config)
     {
-        $this->path = $path ?? __DIR__ . '/' . self::DEFAULT_PATH;
-
-        try {
-            $config = file_get_contents($this->path);
-            $config = json_decode($config, true);
-
-            if ($config === null) {
-                throw new \Exception('Could not json decode config.');
-            }
-
-            $this->config = $config;
-        } catch (\Exception $e) {
-            throw new ConfigException($e->getMessage(), $this->path);
-        }
+        $this->config = $config;
     }
 
     /**
      * @param string|array $option One or more options.
-     * @param bool         $assert Throw an exception if a value for an option is not found.
+     * @param bool         $assert Throw an exception if a value for an option
+     *                             is not found.
      *
      * @return mixed
      */
@@ -58,7 +36,10 @@ class Config
             $result = [];
 
             foreach ($option as $single_option) {
-                $result[$single_option] = $this->getSingle($single_option, $assert);
+                $result[$single_option] = $this->getSingle(
+                    $single_option,
+                    $assert
+                );
             }
 
             return $result;
@@ -79,13 +60,16 @@ class Config
     {
         if (is_string($option)) {
             if ($value === null) {
-                throw new \InvalidArgumentException("Second argument 'value' required.");
+                throw new \InvalidArgumentException(
+                    "Second argument 'value' required."
+                );
             }
 
             $option = [$option => $value];
         } elseif (!is_array($option)) {
             throw new \InvalidArgumentException(
-                "Argument 'option' must be a string or an array of option value pairs."
+                "Argument 'option' must be a string or an array of option value "
+                . "pairs."
             );
         }
 
@@ -105,7 +89,9 @@ class Config
         $value = $this->config[$key] ?? null;
 
         if ($value === null && $assert) {
-            throw new ConfigException("Required config value is missing: {$key}.", $this->path);
+            throw new ConfigException(
+                "Required config value is missing: {$key}."
+            );
         }
 
         return $value;

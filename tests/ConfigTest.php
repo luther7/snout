@@ -9,7 +9,11 @@ class ConfigTest extends TestCase
 {
     public function testGet()
     {
-        $test_config = __DIR__ . '/test_config.json';
+        $test_config = \Snout\json_decode_file(
+            __DIR__ . '/test_configs/test.json',
+            true
+        );
+
         $config = new Config($test_config);
 
         $this->assertEquals(null, $config->get('crack'));
@@ -28,7 +32,11 @@ class ConfigTest extends TestCase
 
     public function testSet()
     {
-        $test_config = __DIR__ . '/test_config.json';
+        $test_config = \Snout\json_decode_file(
+            __DIR__ . '/test_configs/test.json',
+            true
+        );
+
         $config = new Config($test_config);
 
         $config->set('pig', 1234);
@@ -45,50 +53,43 @@ class ConfigTest extends TestCase
     }
 
     /**
-     * @expectedException Snout\Exceptions\ConfigException
-     */
-    public function testBadPathException()
-    {
-        $test_config = __DIR__ . '/foo';
-        $config = new Config($test_config);
-    }
-
-    /**
-     * @expectedException Snout\Exceptions\ConfigException
-     */
-    public function testInvalidJSONException()
-    {
-        $test_config = __DIR__ . '/test_config_invalid_json.json';
-        $config = new Config($test_config);
-    }
-
-    /**
-     * @expectedException Snout\Exceptions\ConfigException
+     * @expectedException \Snout\Exceptions\ConfigException
      */
     public function testAssertException()
     {
-        $test_config = __DIR__ . '/test_config.json';
+        $test_config = \Snout\json_decode_file(
+            __DIR__ . '/test_configs/test.json',
+            true
+        );
+
         $config = new Config($test_config);
         $config->get('crack', true);
     }
 
     /**
-     * @expectedException InvalidArgumentException
+     * @expectedException \InvalidArgumentException
      */
     public function testGetInvalidArgument()
     {
-        $test_config = __DIR__ . '/test_config.json';
-        $config = new Config($test_config);
+        $test_config = \Snout\json_decode_file(
+            __DIR__ . '/test_configs/test.json',
+            true
+        );
 
+        $config = new Config($test_config);
         $config->get(1234);
     }
 
     /**
-     * @expectedException InvalidArgumentException
+     * @expectedException \InvalidArgumentException
      */
     public function testSetInvalidArgument()
     {
-        $test_config = __DIR__ . '/test_config.json';
+        $test_config = \Snout\json_decode_file(
+            __DIR__ . '/test_configs/test.json',
+            true
+        );
+
         $config = new Config($test_config);
 
         $config->set(1234);
