@@ -38,7 +38,7 @@ class ParserTest extends TestCase
         );
 
         $parser = new Parser($config, new Lexer('foo'));
-        $parser->acceptToken(Token::DIGIT);
+        $parser->accept(Token::DIGIT);
     }
 
     public function testInvalidToken() : void
