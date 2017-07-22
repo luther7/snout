@@ -5,7 +5,7 @@ class FunctionsTest extends TestCase
 {
     public function testDecodeFile() : void
     {
-        $test_config = \Snout\json_decode_file_to_map(
+        $test_config = \Snout\json_decode_file(
             __DIR__ . '/configs/misc.json'
         );
 
@@ -16,12 +16,12 @@ class FunctionsTest extends TestCase
     {
         $this->expectException(Exception::class);
 
-        $test_config = \Snout\json_decode_file_to_map(__DIR__ . '/foo');
+        $test_config = \Snout\json_decode_file(__DIR__ . '/foo');
     }
 
     public function testBadPathNull() : void
     {
-        $test_config = \Snout\json_decode_file_to_map(__DIR__ . '/foo', false);
+        $test_config = \Snout\json_decode_file(__DIR__ . '/foo', false);
 
         $this->assertNull($test_config);
     }
@@ -30,14 +30,14 @@ class FunctionsTest extends TestCase
     {
         $this->expectException(Exception::class);
 
-        $test_config = \Snout\json_decode_file_to_map(
+        $test_config = \Snout\json_decode_file(
             __DIR__ . '/configs/invalid.json'
         );
     }
 
     public function testInvalidJSONNull() : void
     {
-        $test_config = \Snout\json_decode_file_to_map(
+        $test_config = \Snout\json_decode_file(
             __DIR__ . '/configs/invalid.json',
             false
         );

@@ -6,14 +6,17 @@ use \Ds\Map;
 /**
  * Recursivly convert an array to a Map.
  *
- * 3
+ * @param array $argument
+ * @returns Map
  */
 function array_to_map(array $argument) : Map
 {
     $argument = new Map($argument);
-    $argument->map(function ($key, $value) {
-        return is_array($value) ? array_to_map($value) : $value;
-    });
+    $argument->apply(
+        function ($key, $value) {
+            return is_array($value) ? array_to_map($value) : $value;
+        }
+    );
 
     return $argument;
 }
@@ -29,7 +32,7 @@ function array_to_map(array $argument) : Map
  */
 function json_decode_file(string $path, bool $assert = true) : ?Map
 {
-    $contents = json_decode(file_get_contents($path));
+    $contents = json_decode(file_get_contents($path), true);
 
     if ($contents === null) {
         if ($assert) {

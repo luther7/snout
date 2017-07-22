@@ -1,6 +1,7 @@
 <?php
 namespace Snout;
 
+use \Ds\Vector;
 use \Snout\Exceptions\LexerException;
 use \Snout\Utilities\StringIterator;
 use \Snout\Token;
@@ -16,7 +17,7 @@ class Lexer
     private $source;
 
     /**
-     * @var array $tokens
+     * @var Vector $tokens
      */
     private $tokens;
 
@@ -26,7 +27,7 @@ class Lexer
     private $has_payload;
 
     /**
-     * @var array $payloads
+     * @var Vector $payloads
      */
     private $payloads;
 
@@ -51,9 +52,9 @@ class Lexer
     public function __construct(string $source)
     {
         $this->source = new StringIterator($source);
-        $this->tokens = [];
+        $this->tokens = new Vector();
         $this->has_payload = false;
-        $this->payloads = [];
+        $this->payloads = new Vector();
         $this->token_count = 0;
         $this->payload_count = 0;
         $this->column = 1;
@@ -67,7 +68,7 @@ class Lexer
      */
     public function getToken() : string
     {
-        return $this->tokens[$this->token_count - 1];
+        return $this->tokens->last();
     }
 
     /**
@@ -88,7 +89,7 @@ class Lexer
             throw new LexerException('No current payload.');
         }
 
-        return $this->payloads[$this->payload_count - 1];
+        return $this->payloads->last();
     }
 
     /**
@@ -138,21 +139,25 @@ class Lexer
 
         $this->column = $this->source->key() + 1;
 
-        $digit_check = function ($char) {
-            return ctype_digit($char);
-        };
+        $payload = $this->scan(
+            function ($char) {
+                return ctype_digit($char);
+            }
+        );
 
-        if (($payload = $this->scan($digit_check)) !== '') {
+        if ($payload !== '') {
             $this->setResult(Token::DIGIT, (int) $payload);
 
             return;
         }
 
-        $alpha_check = function ($char) {
-            return ctype_alpha($char);
-        };
+        $payload = $this->scan(
+            $alpha_check = function ($char) {
+                return ctype_alpha($char);
+            }
+        );
 
-        if (($payload = $this->scan($alpha_check)) !== '') {
+        if ($payload !== '') {
             $this->setResult(Token::ALPHA, $payload);
 
             return;
@@ -241,21 +246,23 @@ class Lexer
     /**
      * Set scanned token and payload.
      *
-     * @param string      $token   The token to set.
+     * @param string  $token   The token to set.
      * @param ?string $payload The payload to set.
      * @return void
      */
     private function setResult(string $token, ?string $payload = null) : void
     {
-        $this->tokens[] = $token;
+        $this->tokens->push($token);
         $this->token_count++;
 
-        if ($payload !== null) {
-            $this->payloads[] = $payload;
-            $this->has_payload = true;
-            $this->payload_count++;
-        } else {
+        if ($payload == null) {
             $this->has_payload = false;
+
+            return;
         }
+
+        $this->payloads->push($payload);
+        $this->has_payload = true;
+        $this->payload_count++;
     }
 }

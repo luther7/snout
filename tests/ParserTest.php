@@ -12,7 +12,7 @@ class ParserTest extends TestCase
 {
     public function test() : void
     {
-        $config = \Snout\json_decode_file_to_map(
+        $config = \Snout\json_decode_file(
             __DIR__ . '/configs/test.json'
         );
 
@@ -32,7 +32,7 @@ class ParserTest extends TestCase
             "Unexpected token 'ALPHA'. Expecting token 'DIGIT'. At char 1."
         );
 
-        $config = \Snout\json_decode_file_to_map(
+        $config = \Snout\json_decode_file(
             __DIR__ . '/configs/test.json',
             true
         );
@@ -46,7 +46,7 @@ class ParserTest extends TestCase
         $this->expectException(ParserException::class);
         $this->expectExceptionMessage("Invalid token 'SPACE'. At char 1.");
 
-        $config = \Snout\json_decode_file_to_map(
+        $config = \Snout\json_decode_file(
             __DIR__ . '/configs/test.json',
             true
         );

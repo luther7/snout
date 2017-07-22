@@ -1,6 +1,8 @@
 <?php
 namespace Snout;
 
+use \Ds\Map;
+use \Ds\OutOfBoundsException;
 use \Snout\Exceptions\ConfigurationException;
 use \Snout\Exceptions\ParserException;
 use \Snout\Token;
@@ -17,9 +19,9 @@ class Parser
     private $lexer;
 
     /**
-     * @var \stdClass $invalid Invalid tokens.
+     * @var Map $config
      */
-    private $invalid;
+    private $config;
 
     /**
      * @param Map   $config
@@ -37,19 +39,22 @@ class Parser
      **/
     public function configure(Map $config) : void
     {
-        var_dump($config);
         try {
-            $parser_config = $config->get('parser');
+            $config = $config->get('parser');
         } catch (OutOfBoundsException $e) {
             throw new ConfigurationException('parser');
         }
 
-        $this->invalid = array_map(
-            function ($t) {
-                return constant("\Snout\Token::{$t}");
-            },
-            $parser_config['invalid']
+        $config->put(
+            'invalid',
+            $config->get('invalid')->map(
+                function ($key, $value) {
+                    return constant("\Snout\Token::{$value}");
+                }
+            )
         );
+
+        $this->config = $config;
     }
 
     /**
@@ -121,7 +126,7 @@ class Parser
      */
     private function checkInvalid(string $token) : void
     {
-        if (!in_array($token, $this->invalid)) {
+        if (!$this->config->get('invalid')->hasValue($token)) {
             return;
         }
 
