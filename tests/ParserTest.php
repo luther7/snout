@@ -12,16 +12,11 @@ class ParserTest extends TestCase
 {
     public function test() : void
     {
-        $config = \Snout\json_decode_file(
-            __DIR__ . '/configs/test.json',
-            true
+        $config = \Snout\json_decode_file_to_map(
+            __DIR__ . '/configs/test.json'
         );
 
-        $parser = new Parser(
-            new Config($config),
-            new Lexer("foo1234/_-\\")
-        );
-
+        $parser = new Parser($config, new Lexer("foo1234/_-\\"));
         $this->assertNull($parser->accept(Token::ALPHA));
         $this->assertNull($parser->accept(Token::DIGIT));
         $this->assertNull($parser->accept(Token::FORWARD_SLASH));
@@ -37,16 +32,12 @@ class ParserTest extends TestCase
             "Unexpected token 'ALPHA'. Expecting token 'DIGIT'. At char 1."
         );
 
-        $config = \Snout\json_decode_file(
+        $config = \Snout\json_decode_file_to_map(
             __DIR__ . '/configs/test.json',
             true
         );
 
-        $parser = new Parser(
-            new Config($config),
-            new Lexer('foo')
-        );
-
+        $parser = new Parser($config, new Lexer('foo'));
         $parser->acceptToken(Token::DIGIT);
     }
 
@@ -55,16 +46,12 @@ class ParserTest extends TestCase
         $this->expectException(ParserException::class);
         $this->expectExceptionMessage("Invalid token 'SPACE'. At char 1.");
 
-        $config = \Snout\json_decode_file(
+        $config = \Snout\json_decode_file_to_map(
             __DIR__ . '/configs/test.json',
             true
         );
 
-        $parser = new Parser(
-            new Config($config),
-            new Lexer(' ')
-        );
-
+        $parser = new Parser($config, new Lexer(' '));
         $parser->accept();
     }
 }

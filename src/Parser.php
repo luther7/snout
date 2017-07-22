@@ -1,9 +1,9 @@
 <?php
 namespace Snout;
 
+use \Snout\Exceptions\ConfigurationException;
 use \Snout\Exceptions\ParserException;
 use \Snout\Token;
-use \Snout\Config;
 use \Snout\Lexer;
 
 /**
@@ -17,27 +17,32 @@ class Parser
     private $lexer;
 
     /**
-     * @var array $invalid Invalid tokens.
+     * @var \stdClass $invalid Invalid tokens.
      */
     private $invalid;
 
     /**
-     * @param Config $config
-     * @param Lexer  $lexer
+     * @param Map   $config
+     * @param Lexer $lexer
      */
-    public function __construct(Config $config, Lexer $lexer)
+    public function __construct(Map $config, Lexer $lexer)
     {
         $this->configure($config);
         $this->lexer = $lexer;
     }
 
     /**
-     * @param Config $config
+     * @param Map $config
      * @return void
      **/
-    public function configure(config $config) : void
+    public function configure(Map $config) : void
     {
-        $parser_config = $config->get('parser', true);
+        var_dump($config);
+        try {
+            $parser_config = $config->get('parser');
+        } catch (OutOfBoundsException $e) {
+            throw new ConfigurationException('parser');
+        }
 
         $this->invalid = array_map(
             function ($t) {

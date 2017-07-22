@@ -1,32 +1,43 @@
 <?php
 namespace Snout;
 
+use \Ds\Map;
+
 /**
- * Return file at path JSON decoded.
+ * Recursivly convert an array to a Map.
+ *
+ * 3
+ */
+function array_to_map(array $argument) : Map
+{
+    $argument = new Map($argument);
+    $argument->map(function ($key, $value) {
+        return is_array($value) ? array_to_map($value) : $value;
+    });
+
+    return $argument;
+}
+
+/**
+ * Return file at path JSON decoded into a Map.
  *
  * @param string $path
- * @param bool   $assoc
  * @param bool   $assert If true, throw an exception if the file is not found or
  *                       the contents are invalid JSON.
  * @throws Exception On invalid json and assert.
- * @return $mixed Decoded file as an object or array.
- *                null on failure and not assert.
+ * @return ?Map Decoded file as a Map or null on failure and not assert.
  */
-function json_decode_file(string $path, bool $assoc = false, bool $assert = true)
+function json_decode_file(string $path, bool $assert = true) : ?Map
 {
-    try {
-        $contents = json_decode(file_get_contents($path), $assoc);
+    $contents = json_decode(file_get_contents($path));
 
-        if ($contents === null) {
-            throw new \Exception('Could not decode JSON.');
-        }
-
-        return $contents;
-    } catch (\Exception $e) {
+    if ($contents === null) {
         if ($assert) {
-            throw $e;
+            throw new \Exception('Could not decode JSON.');
         }
 
         return null;
     }
+
+    return array_to_map($contents);
 }
