@@ -47,7 +47,7 @@ class ParserTest extends TestCase
             new Lexer('foo')
         );
 
-        $parser->accept(Token::DIGIT);
+        $parser->acceptToken(Token::DIGIT);
     }
 
     /**
@@ -68,6 +68,6 @@ class ParserTest extends TestCase
             new Lexer(' ')
         );
 
-        $parser->accept(Token::SPACE);
+        $parser->accept();
     }
 }
