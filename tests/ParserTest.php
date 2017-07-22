@@ -10,7 +10,7 @@ use Snout\Parser;
 
 class ParserTest extends TestCase
 {
-    public function test()
+    public function test() : void
     {
         $config = \Snout\json_decode_file(
             __DIR__ . '/configs/test.json',
@@ -30,7 +30,7 @@ class ParserTest extends TestCase
         $this->assertNull($parser->accept(Token::BACK_SLASH));
     }
 
-    public function testUnacceptableToken()
+    public function testUnacceptableToken() : void
     {
         $this->expectException(ParserException::class);
         $this->expectExceptionMessage(
@@ -50,10 +50,7 @@ class ParserTest extends TestCase
         $parser->acceptToken(Token::DIGIT);
     }
 
-    /**
-    * @expectedException Snout\Exceptions\ParserException
-    */
-    public function testInvalidToken()
+    public function testInvalidToken() : void
     {
         $this->expectException(ParserException::class);
         $this->expectExceptionMessage("Invalid token 'SPACE'. At char 1.");

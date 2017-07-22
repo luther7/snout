@@ -6,7 +6,7 @@ use Snout\Utilities\StringIterator;
 
 class StringIteratorTest extends TestCase
 {
-    public function testWhile()
+    public function testWhile() : void
     {
         $iterator = new StringIterator('foobar');
 
@@ -41,7 +41,7 @@ class StringIteratorTest extends TestCase
         }
     }
 
-    public function testForeach()
+    public function testForeach() : void
     {
         $iterator = new StringIterator('foobar');
 

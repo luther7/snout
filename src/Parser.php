@@ -36,7 +36,7 @@ class Parser
      *
      * @return void
      **/
-    public function configure(config $config)
+    public function configure(config $config) : void
     {
         $parser_config = $config->get('parser', true);
 
@@ -79,7 +79,7 @@ class Parser
      *
      * @return void
      */
-    public function accept()
+    public function accept() : void
     {
         $token = $this->lexer->getToken();
         $this->checkInvalid($token);
@@ -93,7 +93,7 @@ class Parser
      *
      * @return void
      */
-    public function acceptToken(string $valid)
+    public function acceptToken(string $valid) : void
     {
         $token = $this->lexer->getToken();
         $this->checkInvalid($token);
@@ -115,9 +115,9 @@ class Parser
      *
      * @param string $token Token.
      *
-     * @return void.
+     * @return void
      */
-    private function checkInvalid(string $token)
+    private function checkInvalid(string $token) : void
     {
         if (!in_array($token, $this->invalid)) {
             return;

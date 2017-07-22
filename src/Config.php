@@ -56,7 +56,7 @@ class Config
      *
      * @return void
      */
-    public function set($option, $value = null)
+    public function set($option, $value = null) : void
     {
         if (is_string($option)) {
             if ($value === null) {

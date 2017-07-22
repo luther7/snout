@@ -3,7 +3,7 @@ namespace Snout\Tests;
 
 class FunctionsTest extends TestCase
 {
-    public function testDecodeFile()
+    public function testDecodeFile() : void
     {
         $test_config = \Snout\json_decode_file(
             __DIR__ . '/configs/misc.json',
@@ -16,12 +16,12 @@ class FunctionsTest extends TestCase
     /**
      * @expectedException \Exception
      */
-    public function testBadPathException()
+    public function testBadPathException() : void
     {
         $test_config = \Snout\json_decode_file(__DIR__ . '/foo', true);
     }
 
-    public function testBadPathNull()
+    public function testBadPathNull() : void
     {
         $test_config = \Snout\json_decode_file(__DIR__ . '/foo', true, false);
 
@@ -31,7 +31,7 @@ class FunctionsTest extends TestCase
     /**
      * @expectedException \Exception
      */
-    public function testInvalidJSONException()
+    public function testInvalidJSONException() : void
     {
         $test_config = \Snout\json_decode_file(
             __DIR__ . '/configs/invalid.json',
@@ -39,7 +39,7 @@ class FunctionsTest extends TestCase
         );
     }
 
-    public function testInvalidJSONNull()
+    public function testInvalidJSONNull() : void
     {
         $test_config = \Snout\json_decode_file(
             __DIR__ . '/configs/invalid.json',

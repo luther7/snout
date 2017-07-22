@@ -129,7 +129,7 @@ class Lexer
      *
      * @return void
      */
-    public function next()
+    public function next() : void
     {
         if (!$this->source->valid()) {
             $this->column = $this->source->key();
@@ -245,11 +245,11 @@ class Lexer
      * Set scanned token and payload.
      *
      * @param string      $token   The token to set.
-     * @param string|null $payload The payload to set.
+     * @param ?string $payload The payload to set.
      *
      * @return void
      */
-    private function setResult(string $token, string $payload = null)
+    private function setResult(string $token, ?string $payload = null)
     {
         $this->tokens[] = $token;
         $this->token_count++;

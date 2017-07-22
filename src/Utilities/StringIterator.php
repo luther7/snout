@@ -28,7 +28,7 @@ class StringIterator implements \Iterator
     /**
      * @return string Current char.
      */
-    public function current()
+    public function current() : string
     {
         return $this->subject[$this->position];
     }
@@ -36,7 +36,7 @@ class StringIterator implements \Iterator
     /**
      * @return int Current position.
      */
-    public function key()
+    public function key() : int
     {
         return $this->position;
     }
@@ -44,7 +44,7 @@ class StringIterator implements \Iterator
     /**
      * @return void
      */
-    public function next()
+    public function next() : void
     {
         ++$this->position;
     }
@@ -52,7 +52,7 @@ class StringIterator implements \Iterator
     /**
      * @return void
      */
-    public function rewind()
+    public function rewind() : void
     {
         $this->position = 0;
     }
@@ -60,7 +60,7 @@ class StringIterator implements \Iterator
     /**
      * @return bool If valid.
      */
-    public function valid()
+    public function valid() : bool
     {
         return isset($this->subject[$this->position]);
     }

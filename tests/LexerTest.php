@@ -8,7 +8,7 @@ use Snout\Token;
 
 class LexerTest extends TestCase
 {
-    public function testLexer()
+    public function testLexer() : void
     {
         $lexer = new Lexer("foo1234/_-:{}\\ \t\n\r");
 
@@ -124,7 +124,7 @@ class LexerTest extends TestCase
         $this->assertFalse($lexer->hasPayload());
     }
 
-    public function testLexerNoPayloadException()
+    public function testLexerNoPayloadException() : void
     {
         $this->expectException(LexerException::class);
         $this->expectExceptionMessage('No current payload.');
@@ -138,7 +138,7 @@ class LexerTest extends TestCase
         $lexer->getPayload();
     }
 
-    public function testLexerUnexpectedCharException()
+    public function testLexerUnexpectedCharException() : void
     {
         $this->expectException(LexerException::class);
         $this->expectExceptionMessage("Unexpected character: '''. At 1.");

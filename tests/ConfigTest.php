@@ -7,7 +7,7 @@ use Snout\Config;
 
 class ConfigTest extends TestCase
 {
-    public function testGet()
+    public function testGet() : void
     {
         $test_config = \Snout\json_decode_file(
             __DIR__ . '/configs/misc.json',
@@ -30,7 +30,7 @@ class ConfigTest extends TestCase
         $this->assertEquals(9123, $test['cat']);
     }
 
-    public function testSet()
+    public function testSet() : void
     {
         $test_config = \Snout\json_decode_file(
             __DIR__ . '/configs/misc.json',
@@ -52,7 +52,7 @@ class ConfigTest extends TestCase
         $this->assertEquals(9123, $test['bird']);
     }
 
-    public function testAssertException()
+    public function testAssertException() : void
     {
         $this->expectException(ConfigException::class);
         $this->expectExceptionMessage(
@@ -68,7 +68,7 @@ class ConfigTest extends TestCase
         $config->get('crack', true);
     }
 
-    public function testGetInvalidArgument()
+    public function testGetInvalidArgument() : void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage(
@@ -84,7 +84,7 @@ class ConfigTest extends TestCase
         $config->get(1234);
     }
 
-    public function testSetInvalidArgument1()
+    public function testSetInvalidArgument1() : void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage(
@@ -102,7 +102,7 @@ class ConfigTest extends TestCase
         $config->set(1234);
     }
 
-    public function testSetInvalidArgument2()
+    public function testSetInvalidArgument2() : void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage("Second argument 'value' required.");
