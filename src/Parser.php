@@ -84,7 +84,7 @@ class Parser
     /**
      * @return bool
      */
-    public function isEnd() : string
+    public function isEnd() : bool
     {
         return $this->lexer->getToken() === Token::END;
     }
@@ -125,7 +125,7 @@ class Parser
 
             if (!$this->lexer->getPayload() !== $payload) {
                 throw new ParserException(
-                    "Unexpected '{$this->lexer->getPayload()}'"
+                    "Unexpected '{$this->lexer->getPayload()}'. "
                     . "Expecting '{$payload}'. "
                     . "At char {$this->lexer->getColumn()}."
                 );

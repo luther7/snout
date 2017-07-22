@@ -17,6 +17,7 @@ class LexerTest extends TestCase
         $this->assertEquals(3, $lexer->getCharCount());
         $this->assertEquals(Token::ALPHA, $lexer->getToken());
         $this->assertTrue($lexer->hasPayload());
+        $this->assertEquals(1, $lexer->getPayloadCount());
         $this->assertEquals('foo', $lexer->getPayload());
 
         $lexer->next();
@@ -26,6 +27,7 @@ class LexerTest extends TestCase
         $this->assertEquals(7, $lexer->getCharCount());
         $this->assertEquals(Token::DIGIT, $lexer->getToken());
         $this->assertTrue($lexer->hasPayload());
+        $this->assertEquals(2, $lexer->getPayloadCount());
         $this->assertEquals(1234, $lexer->getPayload());
 
         $lexer->next();

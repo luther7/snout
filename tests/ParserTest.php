@@ -16,13 +16,33 @@ class ParserTest extends TestCase
             __DIR__ . '/configs/test.json'
         );
 
-        $parser = new Parser($config, new Lexer("foo1234/_-\\"));
+        $parser = new Parser($config, new Lexer("foo1234/_-:{}\\"));
+        $this->assertFalse($parser->isEnd());
         $this->assertNull($parser->accept(Token::ALPHA));
         $this->assertNull($parser->accept(Token::DIGIT));
         $this->assertNull($parser->accept(Token::FORWARD_SLASH));
         $this->assertNull($parser->accept(Token::UNDERSCORE));
         $this->assertNull($parser->accept(Token::HYPHEN));
+        $this->assertNull($parser->accept(Token::COLON));
+        $this->assertNull($parser->accept(Token::OPEN_BRACE));
+        $this->assertNull($parser->accept(Token::CLOSE_BRACE));
         $this->assertNull($parser->accept(Token::BACK_SLASH));
+        $this->assertNull($parser->accept(Token::END));
+        $this->assertTrue($parser->isEnd());
+    }
+
+    public function testInvalidToken() : void
+    {
+        $this->expectException(ParserException::class);
+        $this->expectExceptionMessage("Invalid token 'SPACE'. At char 1.");
+
+        $config = \Snout\json_decode_file(
+            __DIR__ . '/configs/test.json',
+            true
+        );
+
+        $parser = new Parser($config, new Lexer(' '));
+        $parser->accept();
     }
 
     public function testUnacceptableToken() : void
@@ -41,17 +61,19 @@ class ParserTest extends TestCase
         $parser->accept(Token::DIGIT);
     }
 
-    public function testInvalidToken() : void
+    public function testUnacceptablePayload() : void
     {
         $this->expectException(ParserException::class);
-        $this->expectExceptionMessage("Invalid token 'SPACE'. At char 1.");
+        $this->expectExceptionMessage(
+            "Unexpected 'foo'. Expecting 'bar'. At char 1."
+        );
 
         $config = \Snout\json_decode_file(
             __DIR__ . '/configs/test.json',
             true
         );
 
-        $parser = new Parser($config, new Lexer(' '));
-        $parser->accept();
+        $parser = new Parser($config, new Lexer('foo'));
+        $parser->accept(Token::ALPHA, 'bar');
     }
 }

@@ -1,6 +1,8 @@
 <?php
 namespace Snout\Tests;
 
+use \Ds\Map;
+
 class FunctionsTest extends TestCase
 {
     public function testDecodeFile() : void
@@ -9,7 +11,21 @@ class FunctionsTest extends TestCase
             __DIR__ . '/configs/misc.json'
         );
 
-        $this->assertNotNull($test_config);
+        $check = new Map([
+            'foo' => 'bar',
+            'baz' => new Map([
+                'snap' => new Map([
+                    'pop',
+                    1234,
+                    true,
+                    false
+                ])
+            ]),
+            'dog' => 5678,
+            'cat' => 9123
+        ]);
+
+        $this->assertEquals($test_config);
     }
 
     public function testBadPathException() : void
