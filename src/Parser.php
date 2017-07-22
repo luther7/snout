@@ -82,58 +82,56 @@ class Parser
     }
 
     /**
-     * Accept and scan.
-     *
-     * @return void
+     * @return bool
      */
-    public function accept() : void
+    public function isEnd() : string
     {
-        $token = $this->lexer->getToken();
-        $this->checkInvalid($token);
-        $this->lexer->next();
+        return $this->lexer->getToken() === Token::END;
     }
 
     /**
      * Accept token and scan.
      *
-     * @param string $valid Valid next token.
+     * @param string $token   Valid next token.
+     * @param mixed  $payload Valid next payload.
      * @throws ParserException On unexpected token.
      * @return void
      */
-    public function acceptToken(string $valid) : void
+    public function accept(string $token = null, $payload = null) : void
     {
-        $token = $this->lexer->getToken();
-        $this->checkInvalid($token);
+        $next_token = $this->lexer->getToken();
 
-        if ($token !== $valid) {
-            $column = $this->lexer->getColumn();
-
+        if ($this->config->get('invalid')->hasValue($next_token)) {
             throw new ParserException(
-                "Unexpected token '{$token}'. Expecting token '{$valid}'. "
-                . "At char {$column}."
+                "Invalid token '{$next_token}'. "
+                . "At char {$this->lexer->getColumn()}."
             );
         }
 
-        $this->lexer->next();
-    }
-
-    /**
-     * Check if token is invalid.
-     *
-     * @param string $token Token.
-     * @throws ParserException On invalid token.
-     * @return void
-     */
-    private function checkInvalid(string $token) : void
-    {
-        if (!$this->config->get('invalid')->hasValue($token)) {
-            return;
+        if ($token !== null && $next_token !== $token) {
+            throw new ParserException(
+                "Unexpected token '{$next_token}'. Expecting token '{$token}'. "
+                . "At char {$this->lexer->getColumn()}."
+            );
         }
 
-        $column = $this->lexer->getColumn();
+        if ($payload !== null) {
+            if (!$this->lexer->hasPayload()) {
+                throw new ParserException(
+                    "Expecting '{$payload}'. "
+                    . "At char {$this->lexer->getColumn()}."
+                );
+            }
 
-        throw new ParserException(
-            "Invalid token '{$token}'. At char {$column}."
-        );
+            if (!$this->lexer->getPayload() !== $payload) {
+                throw new ParserException(
+                    "Unexpected '{$this->lexer->getPayload()}'"
+                    . "Expecting '{$payload}'. "
+                    . "At char {$this->lexer->getColumn()}."
+                );
+            }
+        }
+
+        $this->lexer->next();
     }
 }
