@@ -13,11 +13,10 @@ class FunctionsTest extends TestCase
         $this->assertNotNull($test_config);
     }
 
-    /**
-     * @expectedException \Exception
-     */
     public function testBadPathException() : void
     {
+        $this->expectException(Exception::class);
+
         $test_config = \Snout\json_decode_file(__DIR__ . '/foo', true);
     }
 
@@ -28,11 +27,10 @@ class FunctionsTest extends TestCase
         $this->assertNull($test_config);
     }
 
-    /**
-     * @expectedException \Exception
-     */
     public function testInvalidJSONException() : void
     {
+        $this->expectException(Exception::class);
+
         $test_config = \Snout\json_decode_file(
             __DIR__ . '/configs/invalid.json',
             true
