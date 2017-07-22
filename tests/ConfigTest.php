@@ -56,7 +56,7 @@ class ConfigTest extends TestCase
     {
         $this->expectException(ConfigException::class);
         $this->expectExceptionMessage(
-            "Required config value is missing: crack."
+            "Required config key is missing: crack."
         );
 
         $test_config = \Snout\json_decode_file(

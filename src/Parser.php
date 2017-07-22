@@ -33,7 +33,6 @@ class Parser
 
     /**
      * @param Config $config
-     *
      * @return void
      **/
     public function configure(config $config) : void
@@ -66,8 +65,6 @@ class Parser
 
     /**
      * @return string Current payload.
-     *
-     * @throws \Snout\Exceptions\LexerException If there is no current payload.
      */
     public function getPayload() : string
     {
@@ -90,7 +87,7 @@ class Parser
      * Accept token and scan.
      *
      * @param string $valid Valid next token.
-     *
+     * @throws ParserException On unexpected token.
      * @return void
      */
     public function acceptToken(string $valid) : void
@@ -114,7 +111,7 @@ class Parser
      * Check if token is invalid.
      *
      * @param string $token Token.
-     *
+     * @throws ParserException On invalid token.
      * @return void
      */
     private function checkInvalid(string $token) : void

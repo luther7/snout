@@ -8,7 +8,7 @@ namespace Snout;
  * @param bool   $assoc
  * @param bool   $assert If true, throw an exception if the file is not found or
  *                       the contents are invalid JSON.
- *
+ * @throws Exception On invalid json and assert.
  * @return $mixed Decoded file as an object or array.
  *                null on failure and not assert.
  */

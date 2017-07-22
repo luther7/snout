@@ -25,7 +25,7 @@ class Config
      * @param string|array $option One or more options.
      * @param bool         $assert Throw an exception if a value for an option
      *                             is not found.
-     *
+     * @throws InvalidArgumentException
      * @return mixed
      */
     public function get($option, bool $assert = false)
@@ -53,7 +53,7 @@ class Config
     /**
      * @param string|array $option An option or an array of option value pairs.
      * @param mixed        $value  A value or null
-     *
+     * @throws InvalidArgumentException
      * @return void
      */
     public function set($option, $value = null) : void
@@ -79,9 +79,9 @@ class Config
     }
 
     /**
-     * @param string|array $key    One or more keys
-     * @param bool         $assert
-     *
+     * @param string|array $key    One or more keys.
+     * @param bool         $assert Throw exception if key is missing.
+     * @throws ConfigException If the key is missing and asserting.
      * @return mixed
      */
     private function getSingle($key, bool $assert = false)
@@ -90,7 +90,7 @@ class Config
 
         if ($value === null && $assert) {
             throw new ConfigException(
-                "Required config value is missing: {$key}."
+                "Required config key is missing: {$key}."
             );
         }
 

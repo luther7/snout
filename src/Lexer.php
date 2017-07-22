@@ -80,8 +80,7 @@ class Lexer
 
     /**
      * @return string Current payload.
-     *
-     * @throws \Snout\Exceptions\LexerException If there is no current payload.
+     * @throws LexerException If there is no current payload.
      */
     public function getPayload() : string
     {
@@ -125,8 +124,7 @@ class Lexer
     }
 
     /**
-     * Scan the next token.
-     *
+     * @throws LexerException On unexpected character.
      * @return void
      */
     public function next() : void
@@ -216,11 +214,10 @@ class Lexer
     }
 
     /**
-     * Scan a payload of chars satisfying a check.
+     * Scan a payload of characters satisfying a check.
      *
      * @param callable $check   Closure to check chars while scanning.
      * @param string   $payload Scanned payload.
-     *
      * @return string The scanned payload.
      */
     private function scan(callable $check, string $payload = '') : string
@@ -246,10 +243,9 @@ class Lexer
      *
      * @param string      $token   The token to set.
      * @param ?string $payload The payload to set.
-     *
      * @return void
      */
-    private function setResult(string $token, ?string $payload = null)
+    private function setResult(string $token, ?string $payload = null) : void
     {
         $this->tokens[] = $token;
         $this->token_count++;
