@@ -7,72 +7,72 @@ namespace Snout;
 class Token
 {
     /**
-     * @const Ending token.
+     * @const string Ending token.
      */
-    const END = 'END';
+    public const END = 'END';
 
     /**
-     * @const Digit token.
+     * @const string Digit token.
      */
-    const DIGIT = 'DIGIT';
+    public const DIGIT = 'DIGIT';
 
     /**
-     * @const Alpha token.
+     * @const string Alpha token.
      */
-    const ALPHA = 'ALPHA';
+    public const ALPHA = 'ALPHA';
 
     /**
-     * @const Forward slash token.
+     * @const string Forward slash token.
      */
-    const FORWARD_SLASH = 'FORWARD_SLASH';
+    public const FORWARD_SLASH = 'FORWARD_SLASH';
 
     /**
-     * @const Underscore token.
+     * @const string Underscore token.
      */
-    const UNDERSCORE = 'UNDERSCORE';
+    public const UNDERSCORE = 'UNDERSCORE';
 
     /**
-     * @const Hyphen token.
+     * @const string Hyphen token.
      */
-    const HYPHEN = 'HYPHEN';
+    public const HYPHEN = 'HYPHEN';
 
     /**
-     * @const Colon token.
+     * @const string Colon token.
      */
-    const COLON = 'COLON';
+    public const COLON = 'COLON';
 
     /**
-     * @const OPEN_BRACE token.
+     * @const string OPEN_BRACE token.
      */
-    const OPEN_BRACE = 'OPEN_BRACE';
+    public const OPEN_BRACE = 'OPEN_BRACE';
 
     /**
-     * @const CLOSE_BRACE token.
+     * @const string CLOSE_BRACE token.
      */
-    const CLOSE_BRACE = 'CLOSE_BRACE';
+    public const CLOSE_BRACE = 'CLOSE_BRACE';
 
     /**
-     * @const Back slash token.
+     * @const string Back slash token.
      */
-    const BACK_SLASH = 'BACK_SLASH';
+    public const BACK_SLASH = 'BACK_SLASH';
 
     /**
-     * @const Space token.
+     * @const string Space token.
      */
-    const SPACE = 'SPACE';
+    public const SPACE = 'SPACE';
 
     /**
-     * @const Tab token.
+     * @const string Tab token.
      */
-    const TAB = 'TAB';
+    public const TAB = 'TAB';
 
     /**
-     * @const New line token.
+     * @const string New line token.
      */
-    const NEW_LINE = 'NEW_LINE';
+    public const NEW_LINE = 'NEW_LINE';
 
     /**
-     * @const Carriage return token.
+     * @const string Carriage return token.
      */
-    const CARRIAGE_RETURN = 'CARRIAGE_RETURN';
+    public const CARRIAGE_RETURN = 'CARRIAGE_RETURN';
 }
