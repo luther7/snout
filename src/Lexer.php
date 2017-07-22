@@ -22,24 +22,14 @@ class Lexer
     private $tokens;
 
     /**
-     * @var bool $has_payload Payload flag.
-     */
-    private $has_payload;
-
-    /**
      * @var Vector $payloads
      */
     private $payloads;
 
     /**
-     * @var int $token_count
+     * @var bool $has_payload Payload flag.
      */
-    private $token_count;
-
-    /**
-     * @var int $payload_count
-     */
-    private $payload_count;
+    private $has_payload;
 
     /**
      * @var int $column Char column of last consumed token.
@@ -53,10 +43,8 @@ class Lexer
     {
         $this->source = new StringIterator($source);
         $this->tokens = new Vector();
-        $this->has_payload = false;
         $this->payloads = new Vector();
-        $this->token_count = 0;
-        $this->payload_count = 0;
+        $this->has_payload = false;
         $this->column = 1;
 
         // Scan first token.
@@ -97,7 +85,7 @@ class Lexer
      */
     public function getTokenCount() : int
     {
-        return $this->token_count;
+        return $this->tokens->count();
     }
 
     /**
@@ -105,7 +93,7 @@ class Lexer
      */
     public function getPayloadCount() : int
     {
-        return $this->payload_count;
+        return $this->payloads->count();
     }
 
     /**
@@ -253,7 +241,6 @@ class Lexer
     private function setResult(string $token, ?string $payload = null) : void
     {
         $this->tokens->push($token);
-        $this->token_count++;
 
         if ($payload == null) {
             $this->has_payload = false;
@@ -263,6 +250,5 @@ class Lexer
 
         $this->payloads->push($payload);
         $this->has_payload = true;
-        $this->payload_count++;
     }
 }
