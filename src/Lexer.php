@@ -176,6 +176,18 @@ class Lexer
                 $this->setResult(Token::HYPHEN);
                 return;
 
+            case ':':
+                $this->setResult(Token::COLON);
+                return;
+
+            case '{':
+                $this->setResult(Token::OPEN_BRACE);
+                return;
+
+            case '}':
+                $this->setResult(Token::CLOSE_BRACE);
+                return;
+
             case '\\':
                 $this->setResult(Token::BACK_SLASH);
                 return;

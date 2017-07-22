@@ -37,6 +37,21 @@ class Token
     const HYPHEN = 'HYPHEN';
 
     /**
+     * @const Colon token.
+     */
+    const COLON = 'COLON';
+
+    /**
+     * @const OPEN_BRACE token.
+     */
+    const OPEN_BRACE = 'OPEN_BRACE';
+
+    /**
+     * @const CLOSE_BRACE token.
+     */
+    const CLOSE_BRACE = 'CLOSE_BRACE';
+
+    /**
      * @const Back slash token.
      */
     const BACK_SLASH = 'BACK_SLASH';
