@@ -1,11 +1,12 @@
 <?php
 namespace Snout;
 
-use \Snout\Exceptions\RouterException;
-use \Snout\Config;
-use \Snout\Lexer;
-use \Snout\Parser;
-use \Snout\Route;
+use Ds\Map;
+use Ds\Deque;
+use Snout\Exceptions\RouterException;
+use Snout\Lexer;
+use Snout\Parser;
+use Snout\Route;
 
 /**
  * Router.
@@ -17,30 +18,48 @@ class Router
      */
     const DEFAULT_CONFIG = [
         'delimiter' => 'FORWARD_SLASH',
-        'parser' => [
-            'invalid' => [
-                'SPACE',
-                'TAB',
-                'NEW_LINE',
-                'CARRIAGE_RETURN'
+        'request' => [
+            'parser' => [
+                'invalid' => [
+                    'SPACE',
+                    'TAB',
+                    'NEW_LINE',
+                    'CARRIAGE_RETURN'
+                ]
             ]
-        ]
+        ],
+        'route' => [
+            'parser' => [
+               'invalid' => [
+                   'TAB',
+                   'NEW_LINE',
+                   'CARRIAGE_RETURN'
+               ]
+            ],
+            'parameters' => [
+                'string' => [
+                    'DIGIT',
+                    'ALPHA',
+                    'UNDERSCORE',
+                    'HYPHEN',
+                    'PERIOD'
+                ],
+                'int' => [
+                    'DIGIT'
+                ]
+            ]
+        ],
     ];
 
     /**
-     * @var Config $config
+     * @var Map $config
      */
     private $config;
 
     /**
-     * @var array $routes
+     * @var Deque $routes
      */
     private $routes;
-
-    /**
-     * @var int $route_count
-     */
-    private $route_count;
 
     /**
      * @var Parser $parser
@@ -52,51 +71,59 @@ class Router
      */
     public function __construct(array $config = [])
     {
-        $this->config = new Config($config + self::DEFAULT_CONFIG);
-        $this->routes = [];
-        $this->route_count = 0;
+        $this->config = array_to_map($config + self::DEFAULT_CONFIG);
+        $this->routes = new Deque();
     }
 
     /**
-     * @param string $path URI path.
-     * @param array  $map  Map of HTTP methods to controller closures.
+     * @param  string $path        URI path.
+     * @param  array  $controllers Map of HTTP methods to controller closures.
      * @return void
      */
-    public function route(string $path, array $map)
+    public function route(string $path, array $controllers) : void
     {
-        $this->routes[] = new Route($path, $map);
-        $this->route_count++;
+        $this->routes->push(
+            new Route(
+                $this->config->get('route'),
+                new Parser(
+                    $this->config->get('route')->get('parser'),
+                    new Lexer($path)
+                ),
+                new Map($controllers)
+            )
+        );
     }
 
     /**
-     * @param string $path   URI path.
-     * @param array  $method HTTP method.
-     * @throws RouterException On no routes.
-     * @return void
+     * @param  string          $path URI path.
+     * @throws RouterException       On no routes. On no match for route.
+     * @return Route
      */
-    public function match(string $path, string $method)
+    public function match(string $path) : Route
     {
-        $this->parser = new Parser($this->config, new Lexer($path));
+        $this->parser = new Parser(
+            $this->config->get('request')->get('parser'),
+            new Lexer($path)
+        );
 
-        if ($this->route_count === 0) {
-            throw new RouterException('No routes where specified.');
+        if ($this->routes->isEmpty()) {
+            throw new RouterException('No routes were specified.');
         }
 
-        $remaining = $this->routes;
-        $remaining_count = $this->route_count;
-
-        while ($remaining_count !== 1) {
-            // if (!$this->parser->isEOF()) {
-            // }
-
-            foreach ($remaining as $index => $route) {
-                if (!$route->match($this->parser)) {
-                    unset($remaining[$index]);
-                    $remaining_count--;
+        while ($this->routes->count() !== 1 && !$this->parser->isEnd()) {
+            $this->routes->filter(
+                function ($route) {
+                    return $route->match($this->parser);
                 }
-            }
+            );
 
             $this->parser->accept();
         }
+
+        if ($this->routes->count() !== 1) {
+            throw new RouterException('No match for route.');
+        }
+
+        return $this->routes->shift();
     }
 }

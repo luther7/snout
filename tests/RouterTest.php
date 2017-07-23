@@ -1,30 +1,34 @@
 <?php
 namespace Snout\Tests;
 
-use \PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\TestCase;
+use Ds\Map;
+use Ds\Deque;
 use Snout\Router;
 
 class RouterTest extends TestCase
 {
     public function testTest() : void
     {
-        $result = [];
+        $test_parameters = new Deque([
+            new Map([
+                'name'  => 'id',
+                'type'  => 'int',
+                'value' => 21
+            ])
+        ]);
 
         $router = new Router();
-
         $router->route(
             '/user/{id: int}',
             [
-                'get' => function(array $parameters) use ($result) {
-                    $result = $parameters;
+                'get' => function(Deque $parameters) use ($test_parameters) {
+                    $this->assertEquals($test_parameters, $parameters);
                 }
             ]
         );
 
-        $router->match('/user/21', 'get');
-
-        $this->assetArrayHasKey('id', $result);
-        $this->assetInternalType('int', $result['id']);
-        $this->assetEquals(21, $result['id']);
+        $route = $router->match('/user/21');
+        $route->runController('get');
     }
 }

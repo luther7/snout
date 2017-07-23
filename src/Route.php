@@ -59,32 +59,31 @@ class Route
     }
 
     /**
-     * @param  Map  $config
-     * @return void
-     **/
-    private function configure(Map $config) : void
-    {
-        check_config(new Set(self::REQUIRED_CONFIG), $config);
-
-        $config->get('parameters')->apply(
-            function ($key, $value) {
-                return $value->map(
-                    function ($key, $value) {
-                        return Token::tokenize($value);
-                    }
-                );
-            }
-        );
-
-        $this->config = $config;
-    }
-
-    /**
      * @return Deque $parameters
      */
     public function getParameters() : Deque
     {
         return $this->parameters;
+    }
+
+    /**
+     * @return Map $controllers
+     */
+    public function getController() : Map
+    {
+        return $this->controllers;
+    }
+
+    /**
+     * @return void
+     */
+    public function runController(string $method)
+    {
+        if (!$this->controllers->hasKey($method)) {
+            throw new RouterException("Method {$method} not allowed.");
+        }
+
+        $this->controllers->get($method)($this->parameters);
     }
 
     /**
@@ -108,6 +107,27 @@ class Route
         }
 
         return true;
+    }
+
+    /**
+     * @param  Map  $config
+     * @return void
+     **/
+    private function configure(Map $config) : void
+    {
+        check_config(new Set(self::REQUIRED_CONFIG), $config);
+
+        $config->get('parameters')->apply(
+            function ($key, $value) {
+                return $value->map(
+                    function ($key, $value) {
+                        return Token::tokenize($value);
+                    }
+                );
+            }
+        );
+
+        $this->config = $config;
     }
 
     /**
