@@ -8,12 +8,14 @@ php:
 
 before_script:
   - pecl install ds
-  - php -d extension=ds.so
   - composer install --prefer-source --no-interaction
 
 matrix:
   allow_failures:
     - php: nightly
   fast_finish: true
+
+notifications:
+  email: false
 
 script: make test
