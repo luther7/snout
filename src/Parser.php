@@ -40,7 +40,7 @@ class Parser
     }
 
     /**
-     * @param Map $config
+     * @param  Map $config
      * @return void
      **/
     public function configure(Map $config) : void
@@ -90,9 +90,9 @@ class Parser
     /**
      * Accept and scan. Assert optional token and payload.
      *
-     * @param string $token   Valid next token.
-     * @param mixed  $payload Valid next payload.
-     * @throws ParserException On unexpected token.
+     * @param  string          $token   Valid next token.
+     * @param  mixed           $payload Valid next payload.
+     * @throws ParserException          On unexpected token.
      * @return void
      */
     public function accept(string $token = null, $payload = null) : void
@@ -134,10 +134,10 @@ class Parser
     }
 
     /**
-     * Accept an optional token.
+     * Accept an optional token and payload.
      *
-     * @param string $token   Valid next token.
-     * @param mixed  $payload Valid next payload.
+     * @param  string $token   Valid next token.
+     * @param  mixed  $payload Valid next payload.
      * @return void
      */
     public function optionalAccept(string $token, $payload = null) : void

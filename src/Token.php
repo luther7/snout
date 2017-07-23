@@ -82,7 +82,7 @@ class Token
     public const CARRIAGE_RETURN = 'CARRIAGE_RETURN';
 
     /**
-     * @param string $token
+     * @param  string $token
      * @return string
      */
     public static function tokenize(string $token) : string

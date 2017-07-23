@@ -59,7 +59,7 @@ class Route
     }
 
     /**
-     * @param Map $config
+     * @param  Map  $config
      * @return void
      **/
     private function configure(Map $config) : void
@@ -90,7 +90,7 @@ class Route
     /**
      * Match this route against the request.
      *
-     * @param Parser $request
+     * @param  Parser $request
      * @return bool
      */
     public function match(Parser $request) : bool
@@ -125,6 +125,7 @@ class Route
     /**
      * Parse an embedded parameter out of the route.
      *
+     * @throws RouterException On invalid parameter type.
      * @return bool
      */
     private function parseParameter()
@@ -172,7 +173,7 @@ class Route
     /**
      * Match the request agains the current parameter.
      *
-     * @param Parser $request
+     * @param  Parser $request
      * @return bool
      */
     public function matchParameter(Parser $request) : bool
