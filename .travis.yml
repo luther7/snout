@@ -21,7 +21,7 @@ matrix:
   fast_finish: true
 
 notifications:
-  email: false
+  email: true
 
 script:
   - make test
