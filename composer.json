@@ -13,7 +13,8 @@
     ],
     "require": {
         "php": ">=7.1",
-        "php-ds/php-ds": "^1.1"
+        "php-ds/php-ds": "^1.1",
+        "ext-ds": "^1.2"
     },
     "require-dev": {
         "phpunit/phpunit": "^6.2"
