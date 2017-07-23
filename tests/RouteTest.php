@@ -1,7 +1,7 @@
 <?php
 namespace Snout\Tests;
 
-use \PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\TestCase;
 use Ds\Map;
 use Ds\Deque;
 use Snout\Lexer;

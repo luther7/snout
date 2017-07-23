@@ -1,7 +1,7 @@
 <?php
 namespace Snout\Tests;
 
-use \PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\TestCase;
 use Snout\Exceptions\LexerException;
 use Snout\Lexer;
 use Snout\Token;

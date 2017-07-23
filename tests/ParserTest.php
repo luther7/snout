@@ -1,8 +1,8 @@
 <?php
 namespace Snout\Tests;
 
-use Ds\Map;
 use PHPUnit\Framework\TestCase;
+use Ds\Map;
 use Snout\Exceptions\ConfigurationException;
 use Snout\Exceptions\ParserException;
 use Snout\Token;

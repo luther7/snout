@@ -1,7 +1,7 @@
 <?php
 namespace Snout\Tests;
 
-use \Ds\Map;
+use Ds\Map;
 
 class FunctionsTest extends TestCase
 {
