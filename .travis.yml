@@ -7,6 +7,8 @@ php:
   - nightly
 
 before_script:
+  - pecl install ds
+  - php -d extension=ds.so
   - composer install --prefer-source --no-interaction
 
 matrix:
