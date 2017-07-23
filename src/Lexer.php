@@ -1,10 +1,10 @@
 <?php
 namespace Snout;
 
-use \Ds\Vector;
-use \Snout\Exceptions\LexerException;
-use \Snout\Utilities\StringIterator;
-use \Snout\Token;
+use Ds\Vector;
+use Snout\Exceptions\LexerException;
+use Snout\Utilities\StringIterator;
+use Snout\Token;
 
 /**
  * Lexer.
