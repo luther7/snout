@@ -80,4 +80,13 @@ class Token
      * @const string Carriage return token.
      */
     public const CARRIAGE_RETURN = 'CARRIAGE_RETURN';
+
+    /**
+     * @param string $token
+     * @return string
+     */
+    public static function tokenize(string $token) : string
+    {
+        return constant("self::{$token}");
+    }
 }
