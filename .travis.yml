@@ -6,8 +6,13 @@ php:
   - 7.1
   - nightly
 
+cache:
+  directories:
+    - $HOME/.composer/cache
+
 before_script:
   - pecl install ds
+  - mkdir -p build-logs
   - composer install --prefer-source --no-interaction
 
 matrix:
@@ -18,4 +23,9 @@ matrix:
 notifications:
   email: false
 
-script: make test
+script:
+  - make test
+  - make coverage
+
+after_success:
+  - travis_retry php vendor/bin/coveralls

@@ -17,7 +17,8 @@
         "ext-ds": "^1.2"
     },
     "require-dev": {
-        "phpunit/phpunit": "^6.2"
+        "phpunit/phpunit": "^6.2",
+        "satooshi/php-coveralls": "^1.0"
     },
     "autoload": {
         "files": ["src/functions.php"],
