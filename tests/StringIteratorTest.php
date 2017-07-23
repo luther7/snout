@@ -1,8 +1,8 @@
 <?php
 namespace Snout\Tests;
 
-use \PHPUnit\Framework\TestCase;
-use Snout\Utilities\StringIterator;
+use PHPUnit\Framework\TestCase;
+use Snout\StringIterator;
 
 class StringIteratorTest extends TestCase
 {

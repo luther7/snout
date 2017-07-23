@@ -1,5 +1,5 @@
 <?php
-namespace Snout\Utilities;
+namespace Snout;
 
 /**
  * StringIterator.

@@ -3,7 +3,7 @@ namespace Snout;
 
 use Ds\Vector;
 use Snout\Exceptions\LexerException;
-use Snout\Utilities\StringIterator;
+use Snout\StringIterator;
 use Snout\Token;
 
 /**
