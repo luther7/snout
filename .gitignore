@@ -3,5 +3,4 @@ composer.phar
 composer.lock
 composer-test.lock
 vendor/
-build/artifacts/
-artifacts/
+build/logs/
