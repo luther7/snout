@@ -2,7 +2,7 @@
 namespace Snout;
 
 use \Ds\Map;
-use \Ds\OutOfBoundsException;
+use \Ds\Set;
 use \Snout\Exceptions\ConfigurationException;
 use \Snout\Exceptions\ParserException;
 use \Snout\Token;
@@ -13,6 +13,13 @@ use \Snout\Lexer;
  */
 class Parser
 {
+    /**
+     * @const array REQUIRED_CONFIG
+     */
+    private const REQUIRED_CONFIG = [
+        'invalid'
+    ];
+
     /**
      * @var Lexer $lexer
      */
@@ -39,10 +46,12 @@ class Parser
      **/
     public function configure(Map $config) : void
     {
-        try {
-            $config = $config->get('parser');
-        } catch (OutOfBoundsException $e) {
-            throw new ConfigurationException('parser');
+        $missing = (new Set(self::REQUIRED_CONFIG))->diff($config->keys());
+        if (!$missing->isEmpty()) {
+            throw new ConfigurationException(
+                "Invalid parser configuration. Missing keys: "
+                . $missing->join(', ') . '.'
+            );
         }
 
         $config->put(
@@ -90,7 +99,7 @@ class Parser
     }
 
     /**
-     * Accept token and scan.
+     * Accept and scan. Assert optional token and payload.
      *
      * @param string $token   Valid next token.
      * @param mixed  $payload Valid next payload.
@@ -123,7 +132,7 @@ class Parser
                 );
             }
 
-            if (!$this->lexer->getPayload() !== $payload) {
+            if ($this->lexer->getPayload() !== $payload) {
                 throw new ParserException(
                     "Unexpected '{$this->lexer->getPayload()}'. "
                     . "Expecting '{$payload}'. "
@@ -133,5 +142,21 @@ class Parser
         }
 
         $this->lexer->next();
+    }
+
+    /**
+     * Accept an optional token.
+     *
+     * @param string $token   Valid next token.
+     * @param mixed  $payload Valid next payload.
+     * @return void
+     */
+    public function optionalAccept(string $token, $payload = null) : void
+    {
+        try {
+            $this->accept($token, $payload);
+        } catch (ParserException $e) {
+            // Allow.
+        }
     }
 }
