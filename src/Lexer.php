@@ -167,6 +167,10 @@ class Lexer
                 $this->setResult(Token::HYPHEN);
                 return;
 
+            case '.':
+                $this->setResult(Token::PERIOD);
+                return;
+
             case ':':
                 $this->setResult(Token::COLON);
                 return;

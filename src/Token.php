@@ -37,6 +37,11 @@ class Token
     public const HYPHEN = 'HYPHEN';
 
     /**
+     * @const string Period token.
+     */
+    public const PERIOD = 'PERIOD';
+
+    /**
      * @const string Colon token.
      */
     public const COLON = 'COLON';
