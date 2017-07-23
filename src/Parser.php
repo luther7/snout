@@ -1,12 +1,11 @@
 <?php
 namespace Snout;
 
-use \Ds\Map;
-use \Ds\Set;
-use \Snout\Exceptions\ConfigurationException;
-use \Snout\Exceptions\ParserException;
-use \Snout\Token;
-use \Snout\Lexer;
+use Ds\Map;
+use Ds\Set;
+use Snout\Exceptions\ParserException;
+use Snout\Token;
+use Snout\Lexer;
 
 /**
  * Parser.
@@ -46,21 +45,11 @@ class Parser
      **/
     public function configure(Map $config) : void
     {
-        $missing = (new Set(self::REQUIRED_CONFIG))->diff($config->keys());
-        if (!$missing->isEmpty()) {
-            throw new ConfigurationException(
-                "Invalid parser configuration. Missing keys: "
-                . $missing->join(', ') . '.'
-            );
-        }
-
-        $config->put(
-            'invalid',
-            $config->get('invalid')->map(
-                function ($key, $value) {
-                    return constant("\Snout\Token::{$value}");
-                }
-            )
+        check_config(new Set(self::REQUIRED_CONFIG), $config);
+        $config->get('invalid')->apply(
+            function ($key, $value) {
+                return Token::tokenize($value);
+            }
         );
 
         $this->config = $config;

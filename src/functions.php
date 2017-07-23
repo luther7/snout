@@ -1,7 +1,9 @@
 <?php
 namespace Snout;
 
-use \Ds\Map;
+use Ds\Map;
+use Ds\Set;
+use Snout\Exceptions\ConfigurationException;
 
 /**
  * Recursivly convert an array to a Map.
@@ -43,4 +45,25 @@ function json_decode_file(string $path, bool $assert = true) : ?Map
     }
 
     return array_to_map($contents);
+}
+
+/**
+ * Check a config for required keys.
+ * @param Set $required
+ * @param Map $config
+ * @throws ConfigurationException On missing required keys.
+ * @return void
+ */
+function check_config(Set $required, Map $config) : void
+{
+    $missing = $required->diff($config->keys());
+
+    if ($missing->isEmpty()) {
+        return;
+    }
+
+    throw new ConfigurationException(
+        "Invalid parser configuration. Missing keys: "
+        . $missing->join(', ') . '.'
+    );
 }
