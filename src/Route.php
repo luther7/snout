@@ -19,6 +19,9 @@ class Route
      * @const array REQUIRED_CONFIG
      */
     private const REQUIRED_CONFIG = [
+        'path',
+        'controllers',
+        'parser',
         'parameters'
     ];
 
@@ -33,33 +36,49 @@ class Route
     private $parser;
 
     /**
-     * @var Map $controllers
-     */
-    private $controllers;
-
-    /**
      * @var Deque $parameters
      */
     private $parameters;
 
     /**
-     * @param Map    $config
-     * @param Parser $parser
-     * @param Map    $controllers
+     * @throws InvalidArgumentException         If config is not an array or Map.
+     * @param  array|Map                $config
      */
-    public function __construct(
-        Map $config,
-        Parser $parser,
-        Map $controllers
-    ) {
+    public function __construct($config)
+    {
+        if (is_array($config)) {
+            $config = array_to_map($config);
+        } elseif (!($config instanceof Map)) {
+            throw new \InvalidArgumentException('Config must be an array or \Ds\Map.');
+        }
+
         $this->configure($config);
-        $this->parser = $parser;
-        $this->controllers = $controllers;
+
         $this->parameters = new Deque();
+        $this->parser = new Parser(
+            $this->config->get('parser'),
+            new Lexer($this->config->get('path'))
+        );
     }
 
     /**
-     * @return Deque $parameters
+     * @return string
+     */
+    public function getPath() : string
+    {
+        return $this->config->get('path');
+    }
+
+    /**
+     * @return string
+     */
+    public function getName() : string
+    {
+        return $this->config->get('name', $this->getPath());
+    }
+
+    /**
+     * @return Deque
      */
     public function getParameters() : Deque
     {
@@ -67,11 +86,11 @@ class Route
     }
 
     /**
-     * @return Map $controllers
+     * @return Map
      */
     public function getController() : Map
     {
-        return $this->controllers;
+        return $this->config->get('controllers');
     }
 
     /**
@@ -79,11 +98,11 @@ class Route
      */
     public function runController(string $method)
     {
-        if (!$this->controllers->hasKey($method)) {
+        if (!$this->config->get('controllers')->hasKey($method)) {
             throw new RouterException("Method {$method} not allowed.");
         }
 
-        $this->controllers->get($method)($this->parameters);
+        $this->config->get('controllers')->get($method)($this->parameters);
     }
 
     /**
@@ -117,6 +136,7 @@ class Route
     {
         check_config(new Set(self::REQUIRED_CONFIG), $config);
 
+        // FIXME
         $config->get('parameters')->apply(
             function ($key, $value) {
                 return $value->map(

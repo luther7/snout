@@ -80,11 +80,14 @@ class Router
      * @param  array  $controllers Map of HTTP methods to controller closures.
      * @return void
      */
-    public function route(string $path, array $controllers) : void
+    public function route(string $path, array $controllers, ?string $name = null) : void
     {
+        $config = $this->config->get('route');
+        $config->put('name', $name);
+
         $this->routes->push(
+            $config,
             new Route(
-                $this->config->get('route'),
                 new Parser(
                     $this->config->get('route')->get('parser'),
                     new Lexer($path)

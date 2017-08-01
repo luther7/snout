@@ -25,37 +25,34 @@ class RouteTest extends TestCase
             ])
         ]);
 
-        $route = new Route(
-            \Snout\array_to_map([
-                'parameters' => [
-                    'string' => [
-                        'DIGIT',
-                        'ALPHA',
-                        'UNDERSCORE',
-                        'HYPHEN',
-                        'PERIOD'
-                    ],
-                    'int' => [
-                        'DIGIT'
-                    ]
-                ]
-            ]),
-            new Parser(
-                \Snout\array_to_map([
-                    'invalid' => [
-                        'TAB',
-                        'NEW_LINE',
-                        'CARRIAGE_RETURN'
-                    ]
-                ]),
-                new Lexer('/user/{id: int}/name/{name: string}')
-            ),
-            \Snout\array_to_map([
+        $route = new Route([
+            'name'        => 'test_route',
+            'path'        => '/user/{id: int}/name/{name: string}',
+            'controllers' => [
                 'get' => function(Deque $parameters) use ($test_parameters) {
                     $this->assertEquals($test_parameters, $parameters);
                 }
-            ])
-        );
+            ],
+            'parser' => [
+                'invalid' => [
+                    'TAB',
+                    'NEW_LINE',
+                    'CARRIAGE_RETURN'
+                ]
+            ],
+            'parameters' => [
+                'string' => [
+                    'DIGIT',
+                    'ALPHA',
+                    'UNDERSCORE',
+                    'HYPHEN',
+                    'PERIOD'
+                ],
+                'int' => [
+                    'DIGIT'
+                ]
+            ],
+        ]);
 
         $request = new Parser(
             \Snout\array_to_map([
@@ -80,37 +77,47 @@ class RouteTest extends TestCase
 
     public function testUnmatchingRoute() : void
     {
-        $route = new Route(
-            \Snout\array_to_map([
-                'parameters' => [
-                    'string' => [
-                        'DIGIT',
-                        'ALPHA',
-                        'UNDERSCORE',
-                        'HYPHEN',
-                        'PERIOD'
-                    ],
-                    'int' => [
-                        'DIGIT'
-                    ]
-                ]
+        $test_parameters = new Deque([
+            new Map([
+                'name'  => 'id',
+                'type'  => 'int',
+                'value' => 12
             ]),
-            new Parser(
-                \Snout\array_to_map([
-                    'invalid' => [
-                        'TAB',
-                        'NEW_LINE',
-                        'CARRIAGE_RETURN'
-                    ]
-                ]),
-                new Lexer('/user/{id: int}/name/{name: string}')
-            ),
-            \Snout\array_to_map([
-                'get' => function(Deque $parameters) {
-                    $this->assertEquals(new Deque(), $parameters);
-                }
+            new Map([
+                'name'  => 'name',
+                'type'  => 'string',
+                'value' => 'luther'
             ])
-        );
+        ]);
+
+        $route = new Route([
+            'name'        => 'test_route',
+            'path'        => '/user/{id: int}/name/{name: string}',
+            'controllers' => [
+                'get' => function(Deque $parameters) use ($test_parameters) {
+                    $this->assertEquals($test_parameters, $parameters);
+                }
+            ],
+            'parser' => [
+                'invalid' => [
+                    'TAB',
+                    'NEW_LINE',
+                    'CARRIAGE_RETURN'
+                ]
+            ],
+            'parameters' => [
+                'string' => [
+                    'DIGIT',
+                    'ALPHA',
+                    'UNDERSCORE',
+                    'HYPHEN',
+                    'PERIOD'
+                ],
+                'int' => [
+                    'DIGIT'
+                ]
+            ],
+        ]);
 
         $request = new Parser(
             \Snout\array_to_map([
