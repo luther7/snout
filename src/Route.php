@@ -20,9 +20,32 @@ class Route
      */
     private const REQUIRED_CONFIG = [
         'path',
-        'controllers',
-        'parser',
-        'parameters'
+        'controllers'
+    ];
+
+    /**
+     * @const array DEFAULT_CONFIG
+     */
+    private const DEFAULT_CONFIG = [
+        'parser' => [
+            'invalid' => [
+                'TAB',
+                'NEW_LINE',
+                'CARRIAGE_RETURN'
+            ]
+        ],
+        'parameters' => [
+            'string' => [
+                'DIGIT',
+                'ALPHA',
+                'UNDERSCORE',
+                'HYPHEN',
+                'PERIOD'
+            ],
+            'int' => [
+                'DIGIT'
+            ]
+        ]
     ];
 
     /**
@@ -41,15 +64,17 @@ class Route
     private $parameters;
 
     /**
-     * @throws InvalidArgumentException         If config is not an array or Map.
-     * @param  array|Map                $config
+     * @param  array|Map $config
+     * @throws InvalidArgumentException If config is not an array or Map.
      */
     public function __construct($config)
     {
         if (is_array($config)) {
             $config = array_to_map($config);
         } elseif (!($config instanceof Map)) {
-            throw new \InvalidArgumentException('Config must be an array or \Ds\Map.');
+            throw new \InvalidArgumentException(
+                '$config must be an array or instance of \Ds\Map.'
+            );
         }
 
         $this->configure($config);
@@ -134,6 +159,9 @@ class Route
      **/
     private function configure(Map $config) : void
     {
+        $default_config = array_to_map(self::DEFAULT_CONFIG);
+        $config = $default_config->merge($config);
+
         check_config(new Set(self::REQUIRED_CONFIG), $config);
 
         // FIXME
@@ -165,8 +193,8 @@ class Route
     /**
      * Parse an embedded parameter out of the route.
      *
-     * @throws RouterException On invalid parameter type.
      * @return bool
+     * @throws RouterException On invalid parameter type.
      */
     private function parseParameter()
     {

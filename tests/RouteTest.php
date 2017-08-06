@@ -32,26 +32,7 @@ class RouteTest extends TestCase
                 'get' => function(Deque $parameters) use ($test_parameters) {
                     $this->assertEquals($test_parameters, $parameters);
                 }
-            ],
-            'parser' => [
-                'invalid' => [
-                    'TAB',
-                    'NEW_LINE',
-                    'CARRIAGE_RETURN'
-                ]
-            ],
-            'parameters' => [
-                'string' => [
-                    'DIGIT',
-                    'ALPHA',
-                    'UNDERSCORE',
-                    'HYPHEN',
-                    'PERIOD'
-                ],
-                'int' => [
-                    'DIGIT'
-                ]
-            ],
+            ]
         ]);
 
         $request = new Parser(
@@ -97,26 +78,7 @@ class RouteTest extends TestCase
                 'get' => function(Deque $parameters) use ($test_parameters) {
                     $this->assertEquals($test_parameters, $parameters);
                 }
-            ],
-            'parser' => [
-                'invalid' => [
-                    'TAB',
-                    'NEW_LINE',
-                    'CARRIAGE_RETURN'
-                ]
-            ],
-            'parameters' => [
-                'string' => [
-                    'DIGIT',
-                    'ALPHA',
-                    'UNDERSCORE',
-                    'HYPHEN',
-                    'PERIOD'
-                ],
-                'int' => [
-                    'DIGIT'
-                ]
-            ],
+            ]
         ]);
 
         $request = new Parser(

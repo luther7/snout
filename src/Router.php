@@ -14,10 +14,9 @@ use Snout\Route;
 class Router
 {
     /**
-     * @const array $default_config
+     * @const array DEFAULT_CONFIG
      */
-    const DEFAULT_CONFIG = [
-        'delimiter' => 'FORWARD_SLASH',
+    private const DEFAULT_CONFIG = [
         'request' => [
             'parser' => [
                 'invalid' => [
@@ -27,28 +26,7 @@ class Router
                     'CARRIAGE_RETURN'
                 ]
             ]
-        ],
-        'route' => [
-            'parser' => [
-               'invalid' => [
-                   'TAB',
-                   'NEW_LINE',
-                   'CARRIAGE_RETURN'
-               ]
-            ],
-            'parameters' => [
-                'string' => [
-                    'DIGIT',
-                    'ALPHA',
-                    'UNDERSCORE',
-                    'HYPHEN',
-                    'PERIOD'
-                ],
-                'int' => [
-                    'DIGIT'
-                ]
-            ]
-        ],
+        ]
     ];
 
     /**
@@ -76,31 +54,18 @@ class Router
     }
 
     /**
-     * @param  string $path        URI path.
-     * @param  array  $controllers Map of HTTP methods to controller closures.
+     * @param  Route $route
      * @return void
      */
-    public function route(string $path, array $controllers, ?string $name = null) : void
+    public function push(Route $route)
     {
-        $config = $this->config->get('route');
-        $config->put('name', $name);
-
-        $this->routes->push(
-            $config,
-            new Route(
-                new Parser(
-                    $this->config->get('route')->get('parser'),
-                    new Lexer($path)
-                ),
-                new Map($controllers)
-            )
-        );
+        $this->routes->push($route);
     }
 
     /**
-     * @param  string          $path URI path.
-     * @throws RouterException       On no routes. On no match for route.
+     * @param  string $path URI path.
      * @return Route
+     * @throws RouterException On no routes. On no match for route.
      */
     public function match(string $path) : Route
     {
@@ -114,7 +79,7 @@ class Router
         }
 
         while ($this->routes->count() !== 1 && !$this->parser->isEnd()) {
-            $this->routes->filter(
+            $this->routes = $this->routes->filter(
                 function ($route) {
                     return $route->match($this->parser);
                 }

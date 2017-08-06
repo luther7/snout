@@ -4,6 +4,7 @@ namespace Snout\Tests;
 use PHPUnit\Framework\TestCase;
 use Ds\Map;
 use Ds\Deque;
+use Snout\Route;
 use Snout\Router;
 
 class RouterTest extends TestCase
@@ -19,32 +20,35 @@ class RouterTest extends TestCase
         ]);
 
         $router = new Router();
-        $router->route(
-            '/user/{id: int}',
-            [
+        $router->push(new Route([
+            'name'        => 'should_match',
+            'path'        => '/user/{id: int}',
+            'controllers' => [
                 'get' => function(Deque $parameters) use ($test_parameters) {
                     $this->assertEquals($test_parameters, $parameters);
                 }
             ]
-        );
+        ]));
 
-        $router->route(
-            '/foo',
-            [
+        $router->push(new Route([
+            'name'        => 'should_not_match_1',
+            'path'        => '/foo',
+            'controllers' => [
                 'get' => function(Deque $parameters) use ($test_parameters) {
                     $this->assertEquals($test_parameters, $parameters);
                 }
             ]
-        );
+        ]));
 
-        $router->route(
-            '/123',
-            [
+        $router->push(new Route([
+            'name'        => 'should_not_match_2',
+            'path'        => '/123',
+            'controllers' => [
                 'get' => function(Deque $parameters) use ($test_parameters) {
                     $this->assertEquals($test_parameters, $parameters);
                 }
             ]
-        );
+        ]));
 
         $route = $router->match('/user/21');
         $route->runController('get');
