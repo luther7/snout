@@ -90,10 +90,10 @@ class Parser
     /**
      * Accept and scan. Assert optional token and payload.
      *
-     * @param  string          $token   Valid next token.
-     * @param  mixed           $payload Valid next payload.
-     * @throws ParserException          On unexpected token.
+     * @param  string $token   Valid next token.
+     * @param  mixed  $payload Valid next payload.
      * @return void
+     * @throws ParserException On unexpected token.
      */
     public function accept(string $token = null, $payload = null) : void
     {

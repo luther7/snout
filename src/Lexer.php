@@ -68,8 +68,8 @@ class Lexer
     }
 
     /**
+     * @return string Current payload.
      * @throws LexerException If there is no current payload.
-     * @return string         Current payload.
      */
     public function getPayload() : string
     {
@@ -113,8 +113,8 @@ class Lexer
     }
 
     /**
-     * @throws LexerException On unexpected character.
      * @return void
+     * @throws LexerException On unexpected character.
      */
     public function next() : void
     {

@@ -26,11 +26,11 @@ function array_to_map(array $argument) : Map
 /**
  * Return file at path JSON decoded into a Map.
  *
- * @param string     $path
- * @param bool       $assert Throw an exception if the file is not found or the
- *                           contents are invalid JSON.
- * @throws Exception         On invalid json and assert.
- * @return ?Map              Decoded file as a Map.
+ * @param string $path
+ * @param bool   $assert Throw an exception if the file is not found or the
+ *                       contents are invalid JSON.
+ * @return ?Map          Decoded file as a Map.
+ * @throws Exception On invalid json and assert.
  */
 function json_decode_file(string $path, bool $assert = true) : ?Map
 {
@@ -50,10 +50,10 @@ function json_decode_file(string $path, bool $assert = true) : ?Map
 /**
  * Check a config for required keys.
  *
- * @param  Set                    $required
- * @param  Map                    $config
- * @throws ConfigurationException
+ * @param  Set  $required
+ * @param  Map  $config
  * @return void
+ * @throws ConfigurationException
  */
 function check_config(Set $required, Map $config) : void
 {
