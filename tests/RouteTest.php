@@ -29,7 +29,7 @@ class RouteTest extends TestCase
             'name'        => 'test_route',
             'path'        => '/user/{id: int}/name/{name: string}',
             'controllers' => [
-                'get' => function(Deque $parameters) use ($test_parameters) {
+                'get' => function (Deque $parameters) use ($test_parameters) {
                     $this->assertEquals($test_parameters, $parameters);
                 }
             ]
@@ -75,7 +75,7 @@ class RouteTest extends TestCase
             'name'        => 'test_route',
             'path'        => '/user/{id: int}/name/{name: string}',
             'controllers' => [
-                'get' => function(Deque $parameters) use ($test_parameters) {
+                'get' => function (Deque $parameters) use ($test_parameters) {
                     $this->assertEquals($test_parameters, $parameters);
                 }
             ]

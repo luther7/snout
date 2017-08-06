@@ -24,7 +24,7 @@ class RouterTest extends TestCase
             'name'        => 'should_match',
             'path'        => '/user/{id: int}',
             'controllers' => [
-                'get' => function(Deque $parameters) use ($test_parameters) {
+                'get' => function (Deque $parameters) use ($test_parameters) {
                     $this->assertEquals($test_parameters, $parameters);
                 }
             ]
@@ -34,7 +34,7 @@ class RouterTest extends TestCase
             'name'        => 'should_not_match_1',
             'path'        => '/foo',
             'controllers' => [
-                'get' => function(Deque $parameters) use ($test_parameters) {
+                'get' => function (Deque $parameters) use ($test_parameters) {
                     $this->assertEquals($test_parameters, $parameters);
                 }
             ]
@@ -44,7 +44,7 @@ class RouterTest extends TestCase
             'name'        => 'should_not_match_2',
             'path'        => '/123',
             'controllers' => [
-                'get' => function(Deque $parameters) use ($test_parameters) {
+                'get' => function (Deque $parameters) use ($test_parameters) {
                     $this->assertEquals($test_parameters, $parameters);
                 }
             ]
