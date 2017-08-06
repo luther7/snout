@@ -5,10 +5,10 @@ help:
 	@echo "  clean          to remove build artifacts"
 
 test:
-	vendor/bin/phpunit
+	vendor/bin/phpunit ${TEST}
 
 coverage:
-	vendor/bin/phpunit --coverage-clover=build/logs/clover.xml
+	vendor/bin/phpunit --coverage-clover=build/logs/clover.xml ${TEST}
 
 clean:
 	rm -rf build/logs
