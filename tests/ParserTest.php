@@ -51,7 +51,7 @@ class ParserTest extends TestCase
     public function testInvalidToken() : void
     {
         $this->expectException(ParserException::class);
-        $this->expectExceptionMessage("Invalid token 'SPACE'. At char 1.");
+        $this->expectExceptionMessage("Invalid token type 'SPACE'. At char 1.");
 
         $config = \Snout\json_decode_file(
             __DIR__ . '/configs/test.json',
@@ -70,7 +70,8 @@ class ParserTest extends TestCase
     {
         $this->expectException(ParserException::class);
         $this->expectExceptionMessage(
-            "Unexpected token 'ALPHA'. Expecting token 'DIGIT'. At char 1."
+            "Unexpected token type 'ALPHA'. Expecting token type 'DIGIT'. "
+            . "At char 1."
         );
 
         $config = \Snout\json_decode_file(
@@ -118,14 +119,14 @@ class ParserTest extends TestCase
             new Lexer('.foo')
         );
 
-        $this->assertEquals(Token::PERIOD, $parser->getToken());
-        $this->assertNull($parser->optionalAccept(Token::ALPHA));
-        $this->assertEquals(Token::PERIOD, $parser->getToken());
-        $this->assertNull($parser->optionalAccept(Token::PERIOD));
-        $this->assertEquals(Token::ALPHA, $parser->getToken());
-        $this->assertNull($parser->optionalAccept(Token::ALPHA, 'bar'));
-        $this->assertEquals(Token::ALPHA, $parser->getToken());
-        $this->assertEquals('foo', $parser->getPayload());
+        $this->assertEquals(Token::PERIOD, $parser->getTokenType());
+        $this->assertNull($parser->optional(Token::ALPHA));
+        $this->assertEquals(Token::PERIOD, $parser->getTokenType());
+        $this->assertNull($parser->optional(Token::PERIOD));
+        $this->assertEquals(Token::ALPHA, $parser->getTokenType());
+        $this->assertNull($parser->optional(Token::ALPHA, 'bar'));
+        $this->assertEquals(Token::ALPHA, $parser->getTokenType());
+        $this->assertEquals('foo', $parser->getTokenValue());
         $this->assertNull($parser->accept(Token::ALPHA, 'foo'));
         $this->assertTrue($parser->isEnd());
     }

@@ -48,7 +48,7 @@ class Parser
         check_config(new Set(self::REQUIRED_CONFIG), $config);
         $config->get('invalid')->apply(
             function ($key, $value) {
-                return Token::tokenize($value);
+                return Token::typeConstant($value);
             }
         );
 
@@ -56,27 +56,39 @@ class Parser
     }
 
     /**
-     * @return string Current token.
+     * @param  $index
+     * @return Token
      */
-    public function getToken() : string
+    public function getToken(int $index = null) : Token
     {
-        return $this->lexer->getToken();
+        return $this->lexer->getToken($index);
     }
 
     /**
-     * @return bool Payload flag.
+     * @param  $index
+     * @return string
      */
-    public function hasPayload() : bool
+    public function getTokenType(int $index = null) : string
     {
-        return $this->lexer->hasPayload();
+        return $this->lexer->getToken($index)->getType();
     }
 
     /**
-     * @return string Current payload.
+     * @param  $index
+     * @return bool
      */
-    public function getPayload() : string
+    public function tokenHasValue(int $index = null) : bool
     {
-        return $this->lexer->getPayload();
+        return $this->lexer->getToken($index)->hasValue();
+    }
+
+    /**
+     * @param  $index
+     * @return mixed
+     */
+    public function getTokenValue(int $index = null)
+    {
+        return $this->lexer->getToken($index)->getValue();
     }
 
     /**
@@ -84,47 +96,49 @@ class Parser
      */
     public function isEnd() : bool
     {
-        return $this->lexer->getToken() === Token::END;
+        return $this->lexer->getToken()->getType() === Token::END;
     }
 
     /**
-     * Accept and scan. Assert optional token and payload.
+     * Accept token and progress Lexer. Assert optional token type and value.
      *
-     * @param  string $token   Valid next token.
-     * @param  mixed  $payload Valid next payload.
+     * @param  string ?$type  Valid next token type.
+     * @param  mixed  ?$value Valid next token value.
      * @return void
      * @throws ParserException On unexpected token.
      */
-    public function accept(string $token = null, $payload = null) : void
+    public function accept(?string $type = null, $value = null) : void
     {
         $next_token = $this->lexer->getToken();
+        $next_token_type = $next_token->getType();
 
-        if ($this->config->get('invalid')->hasValue($next_token)) {
+        if ($this->config->get('invalid')->hasValue($next_token_type)) {
             throw new ParserException(
-                "Invalid token '{$next_token}'. "
+                "Invalid token type '{$next_token_type}'. "
                 . "At char {$this->lexer->getColumn()}."
             );
         }
 
-        if ($token !== null && $next_token !== $token) {
+        if ($type !== null && $next_token_type !== $type) {
             throw new ParserException(
-                "Unexpected token '{$next_token}'. Expecting token '{$token}'. "
+                "Unexpected token type '{$next_token_type}'. "
+                . "Expecting token type '{$type}'. "
                 . "At char {$this->lexer->getColumn()}."
             );
         }
 
-        if ($payload !== null) {
-            if (!$this->lexer->hasPayload()) {
+        if ($value !== null) {
+            if (!$next_token->hasValue()) {
                 throw new ParserException(
-                    "Expecting '{$payload}'. "
+                    "Expecting '{$value}'. "
                     . "At char {$this->lexer->getColumn()}."
                 );
             }
 
-            if ($this->lexer->getPayload() !== $payload) {
+            if ($next_token->getValue() !== $value) {
                 throw new ParserException(
-                    "Unexpected '{$this->lexer->getPayload()}'. "
-                    . "Expecting '{$payload}'. "
+                    "Unexpected '{$next_token->getValue()}'. "
+                    . "Expecting '{$value}'. "
                     . "At char {$this->lexer->getColumn()}."
                 );
             }
@@ -134,18 +148,18 @@ class Parser
     }
 
     /**
-     * Accept an optional token and payload.
+     * Accept optional token.
      *
-     * @param  string $token   Valid next token.
-     * @param  mixed  $payload Valid next payload.
+     * @param  string ?$type  Token type.
+     * @param  mixed  ?$value Token value.
      * @return void
      */
-    public function optionalAccept(string $token, $payload = null) : void
+    public function optional(?string $type = null, $value = null) : void
     {
         try {
-            $this->accept($token, $payload);
+            $this->accept($type, $value);
         } catch (ParserException $e) {
-            // Allow.
+            // Allow failures.
         }
     }
 }

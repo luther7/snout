@@ -2,6 +2,7 @@
 namespace Snout;
 
 use Ds\Vector;
+use Ds\Pair;
 use Snout\Exceptions\LexerException;
 use Snout\StringIterator;
 use Snout\Token;
@@ -22,16 +23,6 @@ class Lexer
     private $tokens;
 
     /**
-     * @var Vector $payloads
-     */
-    private $payloads;
-
-    /**
-     * @var bool $has_payload Payload flag.
-     */
-    private $has_payload;
-
-    /**
      * @var int $column Char column of last consumed token.
      */
     private $column;
@@ -43,41 +34,47 @@ class Lexer
     {
         $this->source = new StringIterator($source);
         $this->tokens = new Vector();
-        $this->payloads = new Vector();
-        $this->has_payload = false;
         $this->column = 1;
 
-        // Scan first token.
         $this->next();
     }
 
     /**
-     * @return string Current token.
+     * @param  $index
+     * @return Token
      */
-    public function getToken() : string
+    public function getToken(int $index = null) : Token
     {
-        return $this->tokens->last();
+        return $index === null
+               ? $this->tokens->last()
+               : $this->tokens->get($index);
     }
 
     /**
-     * @return bool Payload flag.
+     * @param  $index
+     * @return string
      */
-    public function hasPayload() : bool
+    public function getTokenType(int $index = null) : string
     {
-        return $this->has_payload;
+        return $this->getToken($index)->getType();
     }
 
     /**
-     * @return string Current payload.
-     * @throws LexerException If there is no current payload.
+     * @param  $index
+     * @return bool
      */
-    public function getPayload() : string
+    public function tokenHasValue(int $index = null) : bool
     {
-        if (!$this->has_payload) {
-            throw new LexerException('No current payload.');
-        }
+        return $this->getToken($index)->hasValue();
+    }
 
-        return $this->payloads->last();
+    /**
+     * @param  $index
+     * @return mixed
+     */
+    public function getTokenValue(int $index = null)
+    {
+        return $this->getToken($index)->getValue();
     }
 
     /**
@@ -86,14 +83,6 @@ class Lexer
     public function getTokenCount() : int
     {
         return $this->tokens->count();
-    }
-
-    /**
-     * @return int Payload count.
-     */
-    public function getPayloadCount() : int
-    {
-        return $this->payloads->count();
     }
 
     /**
@@ -120,33 +109,37 @@ class Lexer
     {
         if (!$this->source->valid()) {
             $this->column = $this->source->key();
-            $this->setResult(Token::END);
+            $this->tokens->push(new Token(TOKEN::END));
 
             return;
         }
 
         $this->column = $this->source->key() + 1;
 
-        $payload = $this->scan(
+        $lexeme = $this->scan(
             function ($char) {
                 return ctype_digit($char);
             }
         );
 
-        if ($payload !== '') {
-            $this->setResult(Token::DIGIT, (int) $payload);
+        if ($lexeme !== '') {
+            $this->tokens->push(
+                new Token(Token::DIGIT, $lexeme, (int) $lexeme)
+            );
 
             return;
         }
 
-        $payload = $this->scan(
-            $alpha_check = function ($char) {
+        $lexeme = $this->scan(
+            function ($char) {
                 return ctype_alpha($char);
             }
         );
 
-        if ($payload !== '') {
-            $this->setResult(Token::ALPHA, $payload);
+        if ($lexeme !== '') {
+            $this->tokens->push(
+                new Token(Token::ALPHA, $lexeme, $lexeme)
+            );
 
             return;
         }
@@ -156,51 +149,51 @@ class Lexer
 
         switch ($char) {
             case '/':
-                $this->setResult(Token::FORWARD_SLASH);
+                $this->tokens->push(new Token(Token::FORWARD_SLASH, $char));
                 return;
 
             case '_':
-                $this->setResult(Token::UNDERSCORE);
+                $this->tokens->push(new Token(Token::UNDERSCORE, $char));
                 return;
 
             case '-':
-                $this->setResult(Token::HYPHEN);
+                $this->tokens->push(new Token(Token::HYPHEN, $char));
                 return;
 
             case '.':
-                $this->setResult(Token::PERIOD);
+                $this->tokens->push(new Token(Token::PERIOD, $char));
                 return;
 
             case ':':
-                $this->setResult(Token::COLON);
+                $this->tokens->push(new Token(Token::COLON, $char));
                 return;
 
             case '{':
-                $this->setResult(Token::OPEN_BRACE);
+                $this->tokens->push(new Token(Token::OPEN_BRACE, $char));
                 return;
 
             case '}':
-                $this->setResult(Token::CLOSE_BRACE);
+                $this->tokens->push(new Token(Token::CLOSE_BRACE, $char));
                 return;
 
             case '\\':
-                $this->setResult(Token::BACK_SLASH);
+                $this->tokens->push(new Token(Token::BACK_SLASH, $char));
                 return;
 
             case ' ':
-                $this->setResult(Token::SPACE);
+                $this->tokens->push(new Token(Token::SPACE, $char));
                 return;
 
             case "\t":
-                $this->setResult(Token::TAB);
+                $this->tokens->push(new Token(Token::TAB, $char));
                 return;
 
             case "\n":
-                $this->setResult(Token::NEW_LINE);
+                $this->tokens->push(new Token(Token::NEW_LINE, $char));
                 return;
 
             case "\r":
-                $this->setResult(Token::CARRIAGE_RETURN);
+                $this->tokens->push(new Token(Token::CARRIAGE_RETURN, $char));
                 return;
 
             default:
@@ -212,48 +205,27 @@ class Lexer
     }
 
     /**
-     * Scan a payload of characters satisfying a check.
+     * Scan a lexeme - a sequence of chars satisfying a check.
      *
-     * @param  callable $check   Closure to check chars while scanning.
-     * @param  string   $payload Scanned payload.
-     * @return string            The scanned payload.
+     * @param  callable $check  Closure to check chars while scanning.
+     * @param  string   $lexeme Scanned lexeme.
+     * @return string           The scanned lexeme.
      */
-    private function scan(callable $check, string $payload = '') : string
+    private function scan(callable $check, string $lexeme = '') : string
     {
         if (!$this->source->valid()) {
-            return $payload;
+            return $lexeme;
         }
 
         $char = $this->source->current();
 
         if ($check($char)) {
-            $payload .= $char;
+            $lexeme .= $char;
             $this->source->next();
 
-            return $this->scan($check, $payload);
+            return $this->scan($check, $lexeme);
         }
 
-        return $payload;
-    }
-
-    /**
-     * Set scanned token and payload.
-     *
-     * @param  string  $token   The token to set.
-     * @param  ?string $payload The payload to set.
-     * @return void
-     */
-    private function setResult(string $token, ?string $payload = null) : void
-    {
-        $this->tokens->push($token);
-
-        if ($payload == null) {
-            $this->has_payload = false;
-
-            return;
-        }
-
-        $this->payloads->push($payload);
-        $this->has_payload = true;
+        return $lexeme;
     }
 }

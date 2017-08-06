@@ -9,6 +9,7 @@ use Snout\Exceptions\ParserException;
 use Snout\Exceptions\RouterException;
 use Snout\Token;
 use Snout\Parser;
+use Snout\Parameter;
 
 /**
  * Route.
@@ -138,14 +139,16 @@ class Route
      */
     public function match(Parser $request) : bool
     {
-        if (($this->isMatchingParameter() || $this->parseParameter())
-            && $this->matchParameter($request)
+        if ((!$this->parameters->isEmpty()
+           && $this->parameters->last()->isMatching()
+           || $this->parseParameter())
+           && $this->matchParameter($request)
         ) {
             return true;
         }
 
         try {
-            $this->parser->accept($request->getToken());
+            $this->parser->accept($request->getTokenType());
         } catch (ParserException $e) {
             return false;
         }
@@ -169,25 +172,13 @@ class Route
             function ($key, $value) {
                 return $value->map(
                     function ($key, $value) {
-                        return Token::tokenize($value);
+                        return Token::typeConstant($value);
                     }
                 );
             }
         );
 
         $this->config = $config;
-    }
-
-    /**
-     * Check if this route is currently matching a parameter.
-     *
-     * @return bool
-     */
-    private function isMatchingParameter() : bool
-    {
-        // The last parameter will have a matching flag.
-        return !$this->parameters->isEmpty()
-            && $this->parameters->last()->get('matching', false);
     }
 
     /**
@@ -201,21 +192,21 @@ class Route
         // Embedded parameters are of the form:
         // {name: type}
         // eg '{id: int}'
-        if ($this->parser->getToken() !== Token::OPEN_BRACE) {
-            return;
+        if ($this->parser->getTokenType() !== Token::OPEN_BRACE) {
+            return false;
         }
 
         try {
             $this->parser->accept(Token::OPEN_BRACE);
-            $this->parser->optionalAccept(Token::SPACE);
-            $name = $this->parser->getPayload();
+            $this->parser->optional(Token::SPACE);
+            $name = $this->parser->getTokenValue();
             $this->parser->accept(Token::ALPHA);
-            $this->parser->optionalAccept(Token::SPACE);
+            $this->parser->optional(Token::SPACE);
             $this->parser->accept(Token::COLON);
-            $this->parser->optionalAccept(Token::SPACE);
-            $type = $this->parser->getPayload();
+            $this->parser->optional(Token::SPACE);
+            $type = $this->parser->getTokenValue();
             $this->parser->accept(Token::ALPHA);
-            $this->parser->optionalAccept(Token::SPACE);
+            $this->parser->optional(Token::SPACE);
             $this->parser->accept(Token::CLOSE_BRACE);
         } catch (ParserException | LexerException $e) {
             // TODO rewind.
@@ -227,19 +218,13 @@ class Route
             throw new RouterException("Invalid parameter type '{$type}'.");
         }
 
-        $this->parameters->push(
-            new Map([
-                'name'     => $name,
-                'type'     => $type,
-                'matching' => true
-            ])
-        );
+        $this->parameters->push(new Parameter($name, $type));
 
         return true;
     }
 
     /**
-     * Match the request agains the current parameter.
+     * Match the request against the current parameter.
      *
      * @param  Parser $request
      * @return bool
@@ -247,20 +232,16 @@ class Route
     public function matchParameter(Parser $request) : bool
     {
         $parameter = $this->parameters->pop();
-        $tokens = $this->config->get('parameters')->get($parameter->get('type'));
+        $token_types = $this->config->get('parameters')->get($parameter->getType());
 
-        if (!$tokens->hasValue($request->getToken())) {
-            $parameter->remove('matching');
+        if (!$token_types->hasValue($request->getTokenType())) {
+            $parameter->matched();
             $this->parameters->push($parameter);
 
             return false;
         }
 
-        $parameter->put(
-            'value',
-            $parameter->get('value', '') . $request->getPayload()
-        );
-
+        $parameter->addValue($request->getTokenValue());
         $this->parameters->push($parameter);
 
         return true;
