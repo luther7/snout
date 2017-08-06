@@ -25,6 +25,7 @@ notifications:
 
 script:
   - make test
+  - make sniff
   - make coverage
 
 after_success:
