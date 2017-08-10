@@ -213,7 +213,6 @@ class Route
         }
 
         if (!$this->config->get('parameters')->hasKey($type)) {
-            // TODO warnings.
             throw new RouterException("Invalid parameter type '{$type}'.");
         }
 
