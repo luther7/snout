@@ -192,9 +192,7 @@ class Route
         // Embedded parameters are of the form:
         // {name: type}
         // eg '{id: int}'
-        if ($this->parser->getTokenType() !== Token::OPEN_BRACE) {
-            return false;
-        }
+        $save_point = $this->parser->getIndex();
 
         try {
             $this->parser->accept(Token::OPEN_BRACE);
@@ -209,7 +207,8 @@ class Route
             $this->parser->optional(Token::SPACE);
             $this->parser->accept(Token::CLOSE_BRACE);
         } catch (ParserException | LexerException $e) {
-            // TODO rewind.
+            $this->parser->jump($save_point);
+
             return false;
         }
 

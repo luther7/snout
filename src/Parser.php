@@ -1,6 +1,7 @@
 <?php
 namespace Snout;
 
+use OutOfRangeException;
 use Ds\Map;
 use Ds\Set;
 use Snout\Exceptions\ParserException;
@@ -30,13 +31,20 @@ class Parser
     private $config;
 
     /**
+     * @var ?int $index
+     */
+    private $index;
+
+    /**
      * @param Map   $config
      * @param Lexer $lexer
      */
     public function __construct(Map $config, Lexer $lexer)
     {
         $this->configure($config);
+
         $this->lexer = $lexer;
+        $this->index = null;
     }
 
     /**
@@ -61,7 +69,7 @@ class Parser
      */
     public function getToken(int $index = null) : Token
     {
-        return $this->lexer->getToken($index);
+        return $this->lexer->getToken($index ?? $this->index);
     }
 
     /**
@@ -70,7 +78,7 @@ class Parser
      */
     public function getTokenType(int $index = null) : string
     {
-        return $this->lexer->getToken($index)->getType();
+        return $this->getToken($index)->getType();
     }
 
     /**
@@ -79,7 +87,7 @@ class Parser
      */
     public function tokenHasValue(int $index = null) : bool
     {
-        return $this->lexer->getToken($index)->hasValue();
+        return $this->getToken($index)->hasValue();
     }
 
     /**
@@ -88,7 +96,34 @@ class Parser
      */
     public function getTokenValue(int $index = null)
     {
-        return $this->lexer->getToken($index)->getValue();
+        return $this->getToken($index)->getValue();
+    }
+
+    /**
+     * @return int
+     */
+    public function getIndex() : int
+    {
+        return $this->index ?? $this->lexer->getTokenCount();
+    }
+
+    /**
+     * @return void
+     */
+    public function jump(int $index) : void
+    {
+        if ($index === $this->lexer->getTokenCount()) {
+            return;
+        }
+
+        if ($index > $this->lexer->getTokenCount()) {
+            throw new OutOfRangeException(
+                "Index out of range: {$index}, "
+                . "expected 0 <= x <= " . $this->lexer->getTokenCount()
+            );
+        }
+
+        $this->index = $index;
     }
 
     /**
@@ -96,7 +131,7 @@ class Parser
      */
     public function isEnd() : bool
     {
-        return $this->lexer->getToken()->getType() === Token::END;
+        return $this->getToken()->getType() === Token::END;
     }
 
     /**
@@ -109,7 +144,7 @@ class Parser
      */
     public function accept(?string $type = null, $value = null) : void
     {
-        $next_token = $this->lexer->getToken();
+        $next_token = $this->getToken();
         $next_token_type = $next_token->getType();
 
         if ($this->config->get('invalid')->hasValue($next_token_type)) {
@@ -142,6 +177,12 @@ class Parser
                     . "At char {$this->lexer->getColumn()}."
                 );
             }
+        }
+
+        if ($this->index !== null
+            && $this->index !== $this->lexer->getTokenCount()
+        ) {
+            return;
         }
 
         $this->lexer->next();
