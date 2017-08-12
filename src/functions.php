@@ -31,10 +31,20 @@ function array_to_map(array $argument) : Map
  *                       contents are invalid JSON.
  * @return ?Map          Decoded file as a Map.
  * @throws Exception On invalid json and assert.
+ *                   On file not found.
  */
 function json_decode_file(string $path, bool $assert = true) : ?Map
 {
-    $contents = json_decode(file_get_contents($path), true);
+    if (!file_exists($path) || !($contents = file_get_contents($path))) {
+        if ($assert) {
+            throw new \Exception("File not found: {$path}");
+        }
+
+        return null;
+    }
+
+
+    $contents = json_decode($contents, true);
 
     if ($contents === null) {
         if ($assert) {
@@ -64,7 +74,7 @@ function check_config(Set $required, Map $config) : void
     }
 
     throw new ConfigurationException(
-        "Invalid parser configuration. Missing keys: "
-        . $missing->join(', ') . '.'
+        "Invalid configuration. Missing keys: '"
+        . $missing->join("', '") . "'."
     );
 }

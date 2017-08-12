@@ -1,17 +1,30 @@
 <?php
 namespace Snout\Tests;
 
+use PHPUnit\Framework\TestCase;
 use Ds\Map;
+use Ds\Set;
+use Snout\Exceptions\ConfigurationException;
 
 class FunctionsTest extends TestCase
 {
-    public function testDecodeFile() : void
+    public function testArrayToMap() : void
     {
-        $test_config = \Snout\json_decode_file(
-            __DIR__ . '/configs/misc.json'
-        );
+        $result = \Snout\array_to_map([
+            'foo' => 'bar',
+            'baz' => [
+                'snap' => [
+                    'pop',
+                    1234,
+                    true,
+                    false
+                ]
+            ],
+            'dog' => 5678,
+            'cat' => 9123
+        ]);
 
-        $check = new Map([
+        $test = new Map([
             'foo' => 'bar',
             'baz' => new Map([
                 'snap' => new Map([
@@ -25,12 +38,34 @@ class FunctionsTest extends TestCase
             'cat' => 9123
         ]);
 
-        $this->assertEquals($test_config);
+        $this->assertEquals($test, $result);
+    }
+
+    public function testDecodeFile() : void
+    {
+        $config = \Snout\json_decode_file(__DIR__ . '/configs/misc.json');
+
+        $test_config = new Map([
+            'foo' => 'bar',
+            'baz' => new Map([
+                'snap' => new Map([
+                    'pop',
+                    1234,
+                    true,
+                    false
+                ])
+            ]),
+            'dog' => 5678,
+            'cat' => 9123
+        ]);
+
+        $this->assertEquals($test_config, $config);
     }
 
     public function testBadPathException() : void
     {
-        $this->expectException(Exception::class);
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('File not found: ' . __DIR__ . '/foo');
 
         $test_config = \Snout\json_decode_file(__DIR__ . '/foo');
     }
@@ -44,20 +79,46 @@ class FunctionsTest extends TestCase
 
     public function testInvalidJSONException() : void
     {
-        $this->expectException(Exception::class);
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Could not decode JSON.');
 
         $test_config = \Snout\json_decode_file(
-            __DIR__ . '/configs/invalid.json'
+            __DIR__ . '/configs/invalid_json.json'
         );
     }
 
     public function testInvalidJSONNull() : void
     {
         $test_config = \Snout\json_decode_file(
-            __DIR__ . '/configs/invalid.json',
+            __DIR__ . '/configs/invalid_json.json',
             false
         );
 
         $this->assertNull($test_config);
+    }
+
+    public function testCheckConfigValid() : void
+    {
+        $this->assertNull(
+            \Snout\check_config(
+                new Set(['foo', 'baz', 'dog', 'cat']),
+                $config = \Snout\json_decode_file(__DIR__ . '/configs/misc.json')
+            )
+        );
+    }
+
+    public function testCheckConfigInvalid() : void
+    {
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage(
+            "Invalid configuration. Missing keys: 'bar'."
+        );
+
+        $this->assertNull(
+            \Snout\check_config(
+                new Set(['bar']),
+                $config = \Snout\json_decode_file(__DIR__ . '/configs/misc.json')
+            )
+        );
     }
 }

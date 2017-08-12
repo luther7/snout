@@ -95,7 +95,9 @@ class ParserTest extends TestCase
     public function testInvalidConfig() : void
     {
         $this->expectException(ConfigurationException::class);
-        $this->expectExceptionMessage('Invalid parser configuration.');
+        $this->expectExceptionMessage(
+            "Invalid configuration. Missing keys: 'invalid'"
+        );
 
         $parser = new Parser(
             new Map(),
