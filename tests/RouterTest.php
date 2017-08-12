@@ -9,11 +9,9 @@ use Snout\Router;
 
 class RouterTest extends TestCase
 {
-    public function testRouter() : void
+    public function test() : void
     {
-        $test_parameters = new Map([
-            'id' => new Parameter('id', 'int', 21)
-        ]);
+        $test_parameters = new Map(['id' => new Parameter('id', 'int', 21)]);
 
         $router = new Router();
         $router->push(new Route([

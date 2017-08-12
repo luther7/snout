@@ -23,17 +23,73 @@ class ParserTest extends TestCase
         );
 
         $this->assertFalse($parser->isEnd());
+
+        $this->assertEquals(0, $parser->getIndex());
+        $this->assertEquals(Token::ALPHA, $parser->getTokenType());
+        $this->assertTrue($parser->tokenHasValue());
+        $this->assertEquals('foo', $parser->getTokenValue());
+
         $this->assertNull($parser->accept(Token::ALPHA));
+
+        $this->assertEquals(1, $parser->getIndex());
+        $this->assertEquals(Token::DIGIT, $parser->getTokenType());
+        $this->assertTrue($parser->tokenHasValue());
+        $this->assertEquals(1234, $parser->getTokenValue());
+
         $this->assertNull($parser->accept(Token::DIGIT));
+
+        $this->assertEquals(2, $parser->getIndex());
+        $this->assertEquals(Token::FORWARD_SLASH, $parser->getTokenType());
+        $this->assertFalse($parser->tokenHasValue());
+
         $this->assertNull($parser->accept(Token::FORWARD_SLASH));
+
+        $this->assertEquals(3, $parser->getIndex());
+        $this->assertEquals(Token::UNDERSCORE, $parser->getTokenType());
+        $this->assertFalse($parser->tokenHasValue());
+
         $this->assertNull($parser->accept(Token::UNDERSCORE));
+
+        $this->assertEquals(4, $parser->getIndex());
+        $this->assertEquals(Token::HYPHEN, $parser->getTokenType());
+        $this->assertFalse($parser->tokenHasValue());
+
         $this->assertNull($parser->accept(Token::HYPHEN));
+
+        $this->assertEquals(5, $parser->getIndex());
+        $this->assertEquals(Token::PERIOD, $parser->getTokenType());
+        $this->assertFalse($parser->tokenHasValue());
+
         $this->assertNull($parser->accept(Token::PERIOD));
+
+        $this->assertEquals(6, $parser->getIndex());
+        $this->assertEquals(Token::COLON, $parser->getTokenType());
+        $this->assertFalse($parser->tokenHasValue());
+
         $this->assertNull($parser->accept(Token::COLON));
+
+        $this->assertEquals(7, $parser->getIndex());
+        $this->assertEquals(Token::OPEN_BRACE, $parser->getTokenType());
+        $this->assertFalse($parser->tokenHasValue());
+
         $this->assertNull($parser->accept(Token::OPEN_BRACE));
+
+        $this->assertEquals(8, $parser->getIndex());
+        $this->assertEquals(Token::CLOSE_BRACE, $parser->getTokenType());
+        $this->assertFalse($parser->tokenHasValue());
+
         $this->assertNull($parser->accept(Token::CLOSE_BRACE));
+
+        $this->assertEquals(9, $parser->getIndex());
+        $this->assertEquals(Token::BACK_SLASH, $parser->getTokenType());
+        $this->assertFalse($parser->tokenHasValue());
+
         $this->assertNull($parser->accept(Token::BACK_SLASH));
-        $this->assertNull($parser->accept(Token::END));
+
+        $this->assertEquals(10, $parser->getIndex());
+        $this->assertEquals(Token::END, $parser->getTokenType());
+        $this->assertFalse($parser->tokenHasValue());
+
         $this->assertTrue($parser->isEnd());
     }
 

@@ -120,7 +120,7 @@ class Route
     /**
      * @return Map
      */
-    public function getController() : Map
+    public function getControllers() : Map
     {
         return $this->config->get('controllers');
     }
@@ -131,7 +131,7 @@ class Route
     public function runController(string $method)
     {
         if (!$this->config->get('controllers')->hasKey($method)) {
-            throw new RouterException("Method {$method} not allowed.");
+            throw new RouterException("Method '{$method}' not allowed.");
         }
 
         $this->config->get('controllers')->get($method)($this->parameters);
