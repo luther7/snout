@@ -219,5 +219,4 @@ class Parser
     {
         return $this->lexer->getTokenCount() - 1;
     }
-
 }
