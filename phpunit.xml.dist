@@ -3,6 +3,7 @@
   <testsuites>
     <testsuite>
       <directory>tests</directory>
+      <file>tests/functions_test.php</file>
     </testsuite>
   </testsuites>
   <filter>
