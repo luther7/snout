@@ -7,12 +7,12 @@ namespace Snout;
 class StringIterator implements \Iterator
 {
     /**
-     * @var string Subject.
+     * @var string $subject Subject.
      */
     private $subject;
 
     /**
-     * @var int Position.
+     * @var int $position Position.
      */
     private $position;
 
