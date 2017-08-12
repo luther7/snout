@@ -2,7 +2,6 @@
 namespace Snout;
 
 use Ds\Vector;
-use Ds\Pair;
 use Snout\Exceptions\LexerException;
 use Snout\StringIterator;
 use Snout\Token;
