@@ -64,12 +64,20 @@ class Parser
     }
 
     /**
+     * @return int
+     */
+    public function getIndex() : int
+    {
+        return $this->index ?? ($this->getLexerIndex());
+    }
+
+    /**
      * @param  $index
      * @return Token
      */
     public function getToken(int $index = null) : Token
     {
-        return $this->lexer->getToken($index ?? $this->index);
+        return $this->lexer->getToken($index ?? $this->getIndex());
     }
 
     /**
@@ -97,14 +105,6 @@ class Parser
     public function getTokenValue(int $index = null)
     {
         return $this->getToken($index)->getValue();
-    }
-
-    /**
-     * @return int
-     */
-    public function getIndex() : int
-    {
-        return $this->index ?? $this->lexer->getTokenCount();
     }
 
     /**
@@ -179,10 +179,18 @@ class Parser
             }
         }
 
-        if ($this->index !== null
-            && $this->index !== $this->lexer->getTokenCount()
-        ) {
-            return;
+        // If the index is not null then there was a jump.
+        if ($this->index !== null) {
+            // If the index has not caught up with the Lexer then increment.
+            // Return to avoid advancing the Lexer.
+            if ($this->index < $this->getLexerIndex()) {
+                $this->index++;
+
+                return;
+            }
+
+            // Reset the index as it has caught up with the Lexer.
+            $this->index = null;
         }
 
         $this->lexer->next();
@@ -203,4 +211,13 @@ class Parser
             // Allow failures.
         }
     }
+
+    /**
+     * @return int
+     */
+    private function getLexerIndex() : int
+    {
+        return $this->lexer->getTokenCount() - 1;
+    }
+
 }
