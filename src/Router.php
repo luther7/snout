@@ -2,7 +2,7 @@
 namespace Snout;
 
 use Ds\Map;
-use Ds\Deque;
+use Ds\Set;
 use Snout\Exceptions\RouterException;
 use Snout\Lexer;
 use Snout\Parser;
@@ -35,7 +35,7 @@ class Router
     private $config;
 
     /**
-     * @var Deque $routes
+     * @var Set $routes
      */
     private $routes;
 
@@ -50,7 +50,7 @@ class Router
     public function __construct(array $config = [])
     {
         $this->config = array_to_map($config + self::DEFAULT_CONFIG);
-        $this->routes = new Deque();
+        $this->routes = new Set();
     }
 
     /**
@@ -59,7 +59,7 @@ class Router
      */
     public function push(Route $route)
     {
-        $this->routes->push($route);
+        $this->routes->add($route);
     }
 
     /**
@@ -92,6 +92,6 @@ class Router
             throw new RouterException('No match for route.');
         }
 
-        return $this->routes->shift();
+        return $this->routes->first();
     }
 }
