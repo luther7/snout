@@ -51,7 +51,7 @@ class Parser
      * @param  Map $config
      * @return void
      **/
-    public function configure(Map $config) : void
+    private function configure(Map $config) : void
     {
         check_config(new Set(self::REQUIRED_CONFIG), $config);
         $config->get('invalid')->apply(

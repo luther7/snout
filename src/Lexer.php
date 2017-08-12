@@ -2,7 +2,7 @@
 namespace Snout;
 
 use Ds\Vector;
-use Snout\Exceptions\LexerException;
+use Snout\Exceptions\ParserException;
 use Snout\StringIterator;
 use Snout\Token;
 
@@ -102,7 +102,7 @@ class Lexer
 
     /**
      * @return void
-     * @throws LexerException On unexpected character.
+     * @throws ParserException On unexpected character.
      */
     public function next() : void
     {
@@ -196,7 +196,7 @@ class Lexer
                 return;
 
             default:
-                throw new LexerException(
+                throw new ParserException(
                     "Unexpected character: '{$char}'. "
                     . "At {$this->getCharCount()}."
                 );

@@ -4,7 +4,6 @@ namespace Snout;
 use Ds\Vector;
 use Ds\Map;
 use Ds\Set;
-use Snout\Exceptions\LexerException;
 use Snout\Exceptions\ParserException;
 use Snout\Exceptions\RouterException;
 use Snout\Token;
@@ -211,7 +210,7 @@ class Route
             $this->parser->accept(Token::ALPHA);
             $this->parser->optional(Token::SPACE);
             $this->parser->accept(Token::CLOSE_BRACE);
-        } catch (ParserException | LexerException $e) {
+        } catch (ParserException $e) {
             $this->parser->jump($save_point);
 
             return false;

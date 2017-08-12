@@ -2,13 +2,13 @@
 namespace Snout\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Snout\Exceptions\LexerException;
+use Snout\Exceptions\ParserException;
 use Snout\Lexer;
 use Snout\Token;
 
 class LexerTest extends TestCase
 {
-    public function testLexer() : void
+    public function test() : void
     {
         $lexer = new Lexer("foo1234/_-.:{}\\ \t\n\r");
 
@@ -76,6 +76,7 @@ class LexerTest extends TestCase
         $this->assertFalse($lexer->tokenHasValue());
 
         $lexer->next();
+
         $this->assertEquals(14, $lexer->getColumn());
         $this->assertEquals(9, $lexer->getTokenCount());
         $this->assertEquals(14, $lexer->getCharCount());
@@ -131,23 +132,18 @@ class LexerTest extends TestCase
         $this->assertFalse($lexer->tokenHasValue());
     }
 
-    public function testLexerNoPayloadException() : void
+    public function testNoValueException() : void
     {
-        $this->expectException(LexerException::class);
+        $this->expectException(ParserException::class);
         $this->expectExceptionMessage('Token has no value.');
 
-        $lexer = new Lexer("/");
-
-        $this->assertEquals(1, $lexer->getTokenCount());
-        $this->assertEquals(1, $lexer->getCharCount());
-        $this->assertEquals(Token::FORWARD_SLASH, $lexer->getTokenType());
-        $this->assertFalse($lexer->tokenHasValue());
+        $lexer = new Lexer('/');
         $lexer->getTokenValue();
     }
 
-    public function testLexerUnexpectedCharException() : void
+    public function testUnexpectedCharException() : void
     {
-        $this->expectException(LexerException::class);
+        $this->expectException(ParserException::class);
         $this->expectExceptionMessage("Unexpected character: '''. At 1.");
 
         $lexer = new Lexer("'");

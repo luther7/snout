@@ -1,7 +1,7 @@
 <?php
 namespace Snout;
 
-use Snout\Exceptions\LexerException;
+use Snout\Exceptions\ParserException;
 
 /**
  * Token.
@@ -117,8 +117,8 @@ class Token
         ?string $lexeme = null,
         $value = null
     ) {
-        $this->lexeme = $lexeme;
         $this->type = $type;
+        $this->lexeme = $lexeme;
         $this->value = $value;
     }
 
@@ -132,12 +132,12 @@ class Token
 
     /**
      * @return string
-     * @throws LexerException If there is no value.
+     * @throws ParserException If there is no value.
      */
     public function getValue()
     {
         if ($this->value === null) {
-            throw new LexerException('Token has no value.');
+            throw new ParserException('Token has no value.');
         }
 
         return $this->value;

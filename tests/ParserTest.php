@@ -72,7 +72,6 @@ class ParserTest extends TestCase
             new Lexer("foo1234/_-.:{}\\")
         );
 
-        $this->assertFalse($parser->isEnd());
         $this->assertNull($parser->accept(Token::ALPHA));
         $this->assertNull($parser->accept(Token::DIGIT));
         $this->assertNull($parser->accept(Token::FORWARD_SLASH));
