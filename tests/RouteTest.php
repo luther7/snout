@@ -3,33 +3,25 @@ namespace Snout\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Ds\Map;
-use Ds\Deque;
 use Snout\Lexer;
 use Snout\Parser;
 use Snout\Route;
+use Snout\Parameter;
 
 class RouteTest extends TestCase
 {
     public function testMatchingRoute() : void
     {
-        $test_parameters = new Deque([
-            new Map([
-                'name'  => 'id',
-                'type'  => 'int',
-                'value' => 12
-            ]),
-            new Map([
-                'name'  => 'name',
-                'type'  => 'string',
-                'value' => 'luther'
-            ])
+        $test_parameters = new Map([
+            'id'   => new Parameter('id', 'int', 12),
+            'name' => new Parameter('name', 'string', 'luther')
         ]);
 
         $route = new Route([
             'name'        => 'test_route',
             'path'        => '/user/{id: int}/name/{name: string}',
             'controllers' => [
-                'get' => function (Deque $parameters) use ($test_parameters) {
+                'get' => function (Map $parameters) use ($test_parameters) {
                     $this->assertEquals($test_parameters, $parameters);
                 }
             ]
@@ -58,24 +50,16 @@ class RouteTest extends TestCase
 
     public function testUnmatchingRoute() : void
     {
-        $test_parameters = new Deque([
-            new Map([
-                'name'  => 'id',
-                'type'  => 'int',
-                'value' => 12
-            ]),
-            new Map([
-                'name'  => 'name',
-                'type'  => 'string',
-                'value' => 'luther'
-            ])
+        $test_parameters = new Map([
+            'id'   => new Parameter('id', 'int', 12),
+            'name' => new Parameter('name', 'string', 'luther')
         ]);
 
         $route = new Route([
             'name'        => 'test_route',
             'path'        => '/user/{id: int}/name/{name: string}',
             'controllers' => [
-                'get' => function (Deque $parameters) use ($test_parameters) {
+                'get' => function (Map $parameters) use ($test_parameters) {
                     $this->assertEquals($test_parameters, $parameters);
                 }
             ]
@@ -95,6 +79,6 @@ class RouteTest extends TestCase
 
         $this->assertTrue($route->match($request));
         $this->assertFalse($route->match($request));
-        $this->assertEquals(new Deque(), $route->getParameters());
+        $this->assertEquals(new Map(), $route->getParameters());
     }
 }

@@ -1,8 +1,8 @@
 <?php
 namespace Snout;
 
+use Ds\Vector;
 use Ds\Map;
-use Ds\Deque;
 use Ds\Set;
 use Snout\Exceptions\LexerException;
 use Snout\Exceptions\ParserException;
@@ -60,9 +60,14 @@ class Route
     private $parser;
 
     /**
-     * @var Deque $parameters
+     * @var Map $parameters
      */
     private $parameters;
+
+    /**
+     * @var ?Map $parsing_parameter An embedded parameter currently being parsed.
+     */
+    private $parsing_parameter;
 
     /**
      * @param  array|Map $config
@@ -80,11 +85,13 @@ class Route
 
         $this->configure($config);
 
-        $this->parameters = new Deque();
         $this->parser = new Parser(
             $this->config->get('parser'),
             new Lexer($this->config->get('path'))
         );
+
+        $this->parameters = new Map();
+        $this->parsing_parameter = null;
     }
 
     /**
@@ -104,9 +111,9 @@ class Route
     }
 
     /**
-     * @return Deque
+     * @return Map
      */
-    public function getParameters() : Deque
+    public function getParameters() : Map
     {
         return $this->parameters;
     }
@@ -139,9 +146,7 @@ class Route
      */
     public function match(Parser $request) : bool
     {
-        if ((!$this->parameters->isEmpty()
-           && $this->parameters->last()->isMatching()
-           || $this->parseParameter())
+        if (($this->parsing_parameter !== null || $this->parseParameter())
            && $this->matchParameter($request)
         ) {
             return true;
@@ -216,7 +221,10 @@ class Route
             throw new RouterException("Invalid parameter type '{$type}'.");
         }
 
-        $this->parameters->push(new Parameter($name, $type));
+        $this->parsing_parameter = new Map();
+        $this->parsing_parameter->put('name', $name);
+        $this->parsing_parameter->put('type', $type);
+        $this->parsing_parameter->put('values', new Vector());
 
         return true;
     }
@@ -229,18 +237,26 @@ class Route
      */
     public function matchParameter(Parser $request) : bool
     {
-        $parameter = $this->parameters->pop();
-        $token_types = $this->config->get('parameters')->get($parameter->getType());
+        $token_types = $this->config->get('parameters')->get(
+            $this->parsing_parameter->get('type')
+        );
 
         if (!$token_types->hasValue($request->getTokenType())) {
-            $parameter->matched();
-            $this->parameters->push($parameter);
+            $this->parameters->put(
+                $this->parsing_parameter->get('name'),
+                new Parameter(
+                    $this->parsing_parameter->get('name'),
+                    $this->parsing_parameter->get('type'),
+                    $this->parsing_parameter->get('values')->join()
+                )
+            );
+
+            $this->parsing_parameter = null;
 
             return false;
         }
 
-        $parameter->addValue($request->getTokenValue());
-        $this->parameters->push($parameter);
+        $this->parsing_parameter->get('values')->push($request->getTokenValue());
 
         return true;
     }

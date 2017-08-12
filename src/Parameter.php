@@ -22,19 +22,15 @@ class Parameter
     private $value;
 
     /**
-     * @var bool $matching
-     */
-    private $matching;
-
-    /**
      * @param string $name
+     * @param string $type
+     * @param mixed  $value
      */
-    public function __construct(string $name, string $type)
+    public function __construct(string $name, string $type, $value)
     {
         $this->name = $name;
         $this->type = $type;
-        $this->value = '';
-        $this->matching = false;
+        $this->value = $value;
     }
 
     /**
@@ -59,34 +55,5 @@ class Parameter
     public function getValue()
     {
         return $this->value;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isMatching() : bool
-    {
-        return $this->matching;
-    }
-
-    /**
-     * @return void
-     */
-    public function matched() : void
-    {
-        $this->matched = true;
-    }
-
-    /**
-     * @param mixed $value
-     * @return void
-     */
-    public function addValue($value) : void
-    {
-        if ($this->matched()) {
-            // TODO exception.
-        }
-
-        $this->value .= $value;
     }
 }
