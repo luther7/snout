@@ -10,7 +10,7 @@ class LexerTest extends TestCase
 {
     public function test() : void
     {
-        $lexer = new Lexer("foo1234/_-.:{}\\ \t\n\r");
+        $lexer = new Lexer("foo1234/_-.:{}[]\\ \t\n\r");
 
         $this->assertEquals(1, $lexer->getColumn());
         $this->assertEquals(1, $lexer->getTokenCount());
@@ -88,7 +88,7 @@ class LexerTest extends TestCase
         $this->assertEquals(15, $lexer->getColumn());
         $this->assertEquals(10, $lexer->getTokenCount());
         $this->assertEquals(15, $lexer->getCharCount());
-        $this->assertEquals(Token::BACK_SLASH, $lexer->getTokenType());
+        $this->assertEquals(Token::OPEN_BRACKET, $lexer->getTokenType());
         $this->assertFalse($lexer->tokenHasValue());
 
         $lexer->next();
@@ -96,7 +96,7 @@ class LexerTest extends TestCase
         $this->assertEquals(16, $lexer->getColumn());
         $this->assertEquals(11, $lexer->getTokenCount());
         $this->assertEquals(16, $lexer->getCharCount());
-        $this->assertEquals(Token::SPACE, $lexer->getTokenType());
+        $this->assertEquals(Token::CLOSE_BRACKET, $lexer->getTokenType());
         $this->assertFalse($lexer->tokenHasValue());
 
         $lexer->next();
@@ -104,7 +104,7 @@ class LexerTest extends TestCase
         $this->assertEquals(17, $lexer->getColumn());
         $this->assertEquals(12, $lexer->getTokenCount());
         $this->assertEquals(17, $lexer->getCharCount());
-        $this->assertEquals(Token::TAB, $lexer->getTokenType());
+        $this->assertEquals(Token::BACK_SLASH, $lexer->getTokenType());
         $this->assertFalse($lexer->tokenHasValue());
 
         $lexer->next();
@@ -112,7 +112,7 @@ class LexerTest extends TestCase
         $this->assertEquals(18, $lexer->getColumn());
         $this->assertEquals(13, $lexer->getTokenCount());
         $this->assertEquals(18, $lexer->getCharCount());
-        $this->assertEquals(Token::NEW_LINE, $lexer->getTokenType());
+        $this->assertEquals(Token::SPACE, $lexer->getTokenType());
         $this->assertFalse($lexer->tokenHasValue());
 
         $lexer->next();
@@ -120,14 +120,30 @@ class LexerTest extends TestCase
         $this->assertEquals(19, $lexer->getColumn());
         $this->assertEquals(14, $lexer->getTokenCount());
         $this->assertEquals(19, $lexer->getCharCount());
+        $this->assertEquals(Token::TAB, $lexer->getTokenType());
+        $this->assertFalse($lexer->tokenHasValue());
+
+        $lexer->next();
+
+        $this->assertEquals(20, $lexer->getColumn());
+        $this->assertEquals(15, $lexer->getTokenCount());
+        $this->assertEquals(20, $lexer->getCharCount());
+        $this->assertEquals(Token::NEW_LINE, $lexer->getTokenType());
+        $this->assertFalse($lexer->tokenHasValue());
+
+        $lexer->next();
+
+        $this->assertEquals(21, $lexer->getColumn());
+        $this->assertEquals(16, $lexer->getTokenCount());
+        $this->assertEquals(21, $lexer->getCharCount());
         $this->assertEquals(Token::CARRIAGE_RETURN, $lexer->getTokenType());
         $this->assertFalse($lexer->tokenHasValue());
 
         $lexer->next();
 
-        $this->assertEquals(19, $lexer->getColumn());
-        $this->assertEquals(15, $lexer->getTokenCount());
-        $this->assertEquals(19, $lexer->getCharCount());
+        $this->assertEquals(21, $lexer->getColumn());
+        $this->assertEquals(17, $lexer->getTokenCount());
+        $this->assertEquals(21, $lexer->getCharCount());
         $this->assertEquals(Token::END, $lexer->getTokenType());
         $this->assertFalse($lexer->tokenHasValue());
     }

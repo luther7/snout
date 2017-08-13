@@ -19,7 +19,7 @@ class ParserTest extends TestCase
 
         $parser = new Parser(
             $config->get('parser'),
-            new Lexer("foo1234/_-.:{}\\")
+            new Lexer("foo1234/_-.:{}[]\\")
         );
 
         $this->assertFalse($parser->isEnd());
@@ -81,12 +81,24 @@ class ParserTest extends TestCase
         $this->assertNull($parser->accept(Token::CLOSE_BRACE));
 
         $this->assertEquals(9, $parser->getIndex());
+        $this->assertEquals(Token::OPEN_BRACKET, $parser->getTokenType());
+        $this->assertFalse($parser->tokenHasValue());
+
+        $this->assertNull($parser->accept(Token::OPEN_BRACKET));
+
+        $this->assertEquals(10, $parser->getIndex());
+        $this->assertEquals(Token::CLOSE_BRACKET, $parser->getTokenType());
+        $this->assertFalse($parser->tokenHasValue());
+
+        $this->assertNull($parser->accept(Token::CLOSE_BRACKET));
+
+        $this->assertEquals(11, $parser->getIndex());
         $this->assertEquals(Token::BACK_SLASH, $parser->getTokenType());
         $this->assertFalse($parser->tokenHasValue());
 
         $this->assertNull($parser->accept(Token::BACK_SLASH));
 
-        $this->assertEquals(10, $parser->getIndex());
+        $this->assertEquals(12, $parser->getIndex());
         $this->assertEquals(Token::END, $parser->getTokenType());
         $this->assertFalse($parser->tokenHasValue());
 
