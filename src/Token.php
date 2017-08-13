@@ -59,6 +59,16 @@ class Token
     public const CLOSE_BRACE = 'CLOSE_BRACE';
 
     /**
+     * @const string OPEN_BRACKET type.
+     */
+    public const OPEN_BRACKET = 'OPEN_BRACKET';
+
+    /**
+     * @const string CLOSE_BRACKET type.
+     */
+    public const CLOSE_BRACKET = 'CLOSE_BRACKET';
+
+    /**
      * @const string BACK_SLASH Back slash type.
      */
     public const BACK_SLASH = 'BACK_SLASH';

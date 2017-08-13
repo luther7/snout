@@ -175,6 +175,14 @@ class Lexer
                 $this->tokens->push(new Token(Token::CLOSE_BRACE, $char));
                 return;
 
+            case '[':
+                $this->tokens->push(new Token(Token::OPEN_BRACKET, $char));
+                return;
+
+            case ']':
+                $this->tokens->push(new Token(Token::CLOSE_BRACKET, $char));
+                return;
+
             case '\\':
                 $this->tokens->push(new Token(Token::BACK_SLASH, $char));
                 return;
