@@ -56,4 +56,16 @@ class Parameter
     {
         return $this->value;
     }
+
+    /**
+     * @param  Parameters
+     * @return bool
+     */
+    public function compare(Parameter $other) : bool
+    {
+        return $this->name === $other->getName()
+               && $this->type === $other->getType()
+               //FIXME with parameter casting.
+               && $this->value == $other->getValue();
+    }
 }
