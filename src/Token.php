@@ -142,6 +142,22 @@ class Token
 
     /**
      * @return string
+     */
+    public function getLexeme()
+    {
+        return $this->lexeme;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasValue()
+    {
+        return $this->value !== null;
+    }
+
+    /**
+     * @return string
      * @throws ParserException If there is no value.
      */
     public function getValue()
@@ -151,13 +167,5 @@ class Token
         }
 
         return $this->value;
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasValue()
-    {
-        return $this->value !== null;
     }
 }
