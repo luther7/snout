@@ -212,6 +212,20 @@ class Lexer
     }
 
     /**
+     * @return void
+     */
+    public function debug() : string
+    {
+        $values = $this->tokens->map(
+            function ($t) {
+                return $t->hasValue() ? $t->getValue() : $t->getLexeme();
+            }
+        );
+
+        return '|' . $values->join('|') . '<' . $this->getTokenCount();
+    }
+
+    /**
      * Scan a lexeme - a sequence of chars satisfying a check.
      *
      * @param  callable $check  Closure to check chars while scanning.

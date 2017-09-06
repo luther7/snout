@@ -91,6 +91,15 @@ class Parser
 
     /**
      * @param  $index
+     * @return string
+     */
+    public function getTokenLexeme(int $index = null) : string
+    {
+        return $this->getToken($index)->getLexeme();
+    }
+
+    /**
+     * @param  $index
      * @return bool
      */
     public function tokenHasValue(int $index = null) : bool
@@ -210,6 +219,14 @@ class Parser
         } catch (ParserException $e) {
             // Allow failures.
         }
+    }
+
+    /**
+     * @return void
+     */
+    public function debug() : string
+    {
+        return $this->lexer->debug();
     }
 
     /**
