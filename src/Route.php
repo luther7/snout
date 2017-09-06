@@ -4,6 +4,7 @@ namespace Snout;
 use Ds\Vector;
 use Ds\Map;
 use Ds\Set;
+use Snout\Exceptions\ConfigurationException;
 use Snout\Exceptions\ParserException;
 use Snout\Exceptions\RouterException;
 use Snout\Token;
@@ -18,10 +19,7 @@ class Route
     /**
      * @const array REQUIRED_CONFIG
      */
-    private const REQUIRED_CONFIG = [
-        'path',
-        'controllers'
-    ];
+    private const REQUIRED_CONFIG = ['path'];
 
     /**
      * @const array DEFAULT_CONFIG
@@ -64,9 +62,9 @@ class Route
     private $parameters;
 
     /**
-     * @var ?Map $parsing_parameter An embedded parameter currently being parsed.
+     * @var ?Map $parameter An embedded parameter currently being parsed.
      */
-    private $parsing_parameter;
+    private $parameter;
 
     /**
      * @param  array|Map $config
@@ -90,7 +88,7 @@ class Route
         );
 
         $this->parameters = new Map();
-        $this->parsing_parameter = null;
+        $this->parameter = null;
     }
 
     /**
@@ -114,27 +112,56 @@ class Route
      */
     public function getParameters() : Map
     {
+        $this->saveParameter();
+
         return $this->parameters;
     }
 
     /**
-     * @return Map
+     * @param  string $method
+     * @return bool
      */
-    public function getControllers() : Map
+    public function hasController(string $method) : bool
     {
-        return $this->config->get('controllers');
+        return $this->config->get('controllers', false)
+               && $this->config->get('controllers')->hasKey($method);
     }
 
     /**
+     * @param  string $method
      * @return void
      */
-    public function runController(string $method)
+    public function runController(string $method) : void
     {
-        if (!$this->config->get('controllers')->hasKey($method)) {
+        if (!$this->hasController($method)) {
             throw new RouterException("Method '{$method}' not allowed.");
         }
 
-        $this->config->get('controllers')->get($method)($this->parameters);
+        $this->config->get('controllers')->get($method)($this->getParameters());
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasSubRouter() : bool
+    {
+        return $this->config->hasKey('sub_router');
+    }
+
+    /**
+     * @return Router
+     */
+    public function getSubRouter() : Router
+    {
+        return $this->config->get('sub_router');
+    }
+
+    /**
+     * @return bool
+     */
+    public function isComplete() : bool
+    {
+        return $this->parser->isEnd();
     }
 
     /**
@@ -145,8 +172,10 @@ class Route
      */
     public function match(Parser $request) : bool
     {
-        if (($this->parsing_parameter !== null || $this->parseParameter())
-           && $this->matchParameter($request)
+        // If there is a parameter currently being parsed,
+        // or one to parse, attempt to match the request to that parameter.
+        if (($this->parameter !== null || $this->parseParameter())
+            && $this->matchParameter($request)
         ) {
             return true;
         }
@@ -181,6 +210,13 @@ class Route
                 );
             }
         );
+
+        if (!$config->hasKey('controllers') && !$config->hasKey('sub_router')) {
+            throw new ConfigurationException(
+                "Invalid configuration. Require option 'controllers' or "
+                . "'sub_router'"
+            );
+        }
 
         $this->config = $config;
     }
@@ -220,10 +256,10 @@ class Route
             throw new RouterException("Invalid parameter type '{$type}'.");
         }
 
-        $this->parsing_parameter = new Map();
-        $this->parsing_parameter->put('name', $name);
-        $this->parsing_parameter->put('type', $type);
-        $this->parsing_parameter->put('values', new Vector());
+        $this->parameter = new Map();
+        $this->parameter->put('name', $name);
+        $this->parameter->put('type', $type);
+        $this->parameter->put('values', new Vector());
 
         return true;
     }
@@ -234,29 +270,44 @@ class Route
      * @param  Parser $request
      * @return bool
      */
-    public function matchParameter(Parser $request) : bool
+    private function matchParameter(Parser $request) : bool
     {
         $token_types = $this->config->get('parameters')->get(
-            $this->parsing_parameter->get('type')
+            $this->parameter->get('type')
         );
 
-        if (!$token_types->hasValue($request->getTokenType())) {
-            $this->parameters->put(
-                $this->parsing_parameter->get('name'),
-                new Parameter(
-                    $this->parsing_parameter->get('name'),
-                    $this->parsing_parameter->get('type'),
-                    $this->parsing_parameter->get('values')->join()
-                )
-            );
+        // If the next token in the request matches the type of the parameter.
+        if ($token_types->hasValue($request->getTokenType())) {
+            // Add either the token value or the lexeme.
+            $parameter_value = $request->tokenHasValue()
+                             ? $request->getTokenValue()
+                             : $request->getTokenLexeme();
 
-            $this->parsing_parameter = null;
+            $this->parameter->get('values')->push($parameter_value);
 
-            return false;
+            return true;
         }
 
-        $this->parsing_parameter->get('values')->push($request->getTokenValue());
+        // If the types did not match then save the parsing parameter.
+        $this->saveParameter();
+        return false;
+    }
 
-        return true;
+    public function saveParameter() : void
+    {
+        if ($this->parameter === null) {
+            return;
+        }
+
+        $this->parameters->put(
+            $this->parameter->get('name'),
+            new Parameter(
+                $this->parameter->get('name'),
+                $this->parameter->get('type'),
+                $this->parameter->get('values')->join()
+            )
+        );
+
+        $this->parameter = null;
     }
 }
