@@ -105,38 +105,35 @@ class Router
 
         $route = $this->routes->first();
 
-        // If the request is not fully matched, keep matching the route to it.
-        while (!$request->isEnd()) {
-            if (!$route->match($request)) {
-                // If they do not match check for a sub-router.
-                if (!$route->hasSubRouter()
-                    || !$route->isComplete()
-                ) {
-                    throw new RouterException(
-                        "No match for path '{$path}'. Incomplete match with "
-                        . "'{$route->getPath()}'."
-                    );
-                }
-
-                if ($route->hasController($method)) {
-                    $route->runController($method);
-                }
-
-                $route->getSubRouter()->run($path, $method, $request);
-
-                return;
-            }
-
+        while (!$request->isEnd() && $route->match($request)) {
             $request->accept();
         }
 
-        if (!$route->isComplete($request)) {
-            throw new RouterException(
-                "No match for path '{$path}'. Incomplete match with "
-                . "'{$route->getPath()}'."
-            );
+        // If the request and route are fully matched run the controller.
+        if ($request->isEnd() && $route->isComplete()) {
+            $route->runController($method);
+
+            return;
         }
 
-        $route->runController($method);
+        // If the request is not fully matched, then the route must be and must
+        // be a route to a sub-controller.
+        if (!$request->isEnd()
+            && $route->isComplete()
+            && $route->hasSubRouter()
+        ) {
+            if ($route->hasController($method)) {
+                $route->runController($method);
+            }
+
+            $route->getSubRouter()->run($path, $method, $request);
+
+            return;
+        }
+
+        throw new RouterException(
+            "No match for path '{$path}'. Incomplete match with "
+            . "'{$route->getName()}'."
+        );
     }
 }
