@@ -8,7 +8,31 @@ use Snout\Exceptions\ConfigurationException;
 
 class FunctionsTest extends TestCase
 {
-    public function testArrayToMap() : void
+    public static function configProvider() : array
+    {
+        return [
+           [
+               new Map([
+                   'foo' => 'bar',
+                   'baz' => new Map([
+                       'snap' => new Map([
+                           'pop',
+                           1234,
+                           true,
+                           false
+                       ])
+                   ]),
+                   'dog' => 5678,
+                   'cat' => 9123
+               ])
+           ]
+        ];
+    }
+
+    /**
+     * @dataProvider configProvider
+     */
+    public function testArrayToMap(Map $test) : void
     {
         $result = \Snout\array_to_map([
             'foo' => 'bar',
@@ -24,42 +48,17 @@ class FunctionsTest extends TestCase
             'cat' => 9123
         ]);
 
-        $test = new Map([
-            'foo' => 'bar',
-            'baz' => new Map([
-                'snap' => new Map([
-                    'pop',
-                    1234,
-                    true,
-                    false
-                ])
-            ]),
-            'dog' => 5678,
-            'cat' => 9123
-        ]);
-
         $this->assertEquals($test, $result);
     }
 
-    public function testDecodeFile() : void
+    /**
+     * @dataProvider configProvider
+     */
+    public function testDecodeFile(Map $test) : void
     {
         $config = \Snout\json_decode_file(__DIR__ . '/configs/misc.json');
 
-        $test_config = new Map([
-            'foo' => 'bar',
-            'baz' => new Map([
-                'snap' => new Map([
-                    'pop',
-                    1234,
-                    true,
-                    false
-                ])
-            ]),
-            'dog' => 5678,
-            'cat' => 9123
-        ]);
-
-        $this->assertEquals($test_config, $config);
+        $this->assertEquals($test, $config);
     }
 
     public function testBadPathException() : void
@@ -101,7 +100,12 @@ class FunctionsTest extends TestCase
     {
         $this->assertNull(
             \Snout\check_config(
-                new Set(['foo', 'baz', 'dog', 'cat']),
+                new Set([
+                    'foo',
+                    'baz',
+                    'dog',
+                    'cat'
+                ]),
                 $config = \Snout\json_decode_file(__DIR__ . '/configs/misc.json')
             )
         );

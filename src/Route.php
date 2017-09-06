@@ -1,6 +1,7 @@
 <?php
 namespace Snout;
 
+use InvalidArgumentException;
 use Ds\Vector;
 use Ds\Map;
 use Ds\Set;
@@ -62,9 +63,10 @@ class Route
     private $parameters;
 
     /**
-     * @var ?Map $parameter An embedded parameter currently being parsed.
+     * @var ?Map $incomplete_parameter Possible incomplete parameter being
+     *                                 currently matched.
      */
-    private $parameter;
+    private $incomplete_parameter;
 
     /**
      * @param  array|Map $config
@@ -75,7 +77,7 @@ class Route
         if (is_array($config)) {
             $config = array_to_map($config);
         } elseif (!($config instanceof Map)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 '$config must be an array or instance of \Ds\Map.'
             );
         }
@@ -88,7 +90,7 @@ class Route
         );
 
         $this->parameters = new Map();
-        $this->parameter = null;
+        $this->incomplete_parameter = null;
     }
 
     /**
@@ -112,7 +114,7 @@ class Route
      */
     public function getParameters() : Map
     {
-        $this->saveParameter();
+        $this->saveIncompleteParameter();
 
         return $this->parameters;
     }
@@ -129,15 +131,16 @@ class Route
 
     /**
      * @param  string $method
-     * @return void
+     * @return mixed  $controller
+     * @throws RouterException On no controller for method.
      */
-    public function runController(string $method) : void
+    public function getController(string $method)
     {
         if (!$this->hasController($method)) {
-            throw new RouterException("Method '{$method}' not allowed.");
+            throw new RouterException("No controller for method '{$method}'.");
         }
 
-        $this->config->get('controllers')->get($method)($this->getParameters());
+        return $this->config->get('controllers')->get($method);
     }
 
     /**
@@ -150,9 +153,14 @@ class Route
 
     /**
      * @return Router
+     * @throws RouterException On no sub-router.
      */
     public function getSubRouter() : Router
     {
+        if (!$this->hasSubRouter()) {
+            throw new RouterException("Sub-router not found.");
+        }
+
         return $this->config->get('sub_router');
     }
 
@@ -161,7 +169,7 @@ class Route
      */
     public function isComplete() : bool
     {
-        return $this->parser->isEnd();
+        return $this->parser->isComplete();
     }
 
     /**
@@ -172,16 +180,18 @@ class Route
      */
     public function match(Parser $request) : bool
     {
-        // If there is a parameter currently being parsed,
-        // or one to parse, attempt to match the request to that parameter.
-        if (($this->parameter !== null || $this->parseParameter())
-            && $this->matchParameter($request)
+        // If currently matching an incomplete parameter,
+        // or an embedded parameter is next in this route,
+        // attempt to match the request to that parameter.
+        if (($this->incomplete_parameter !== null
+            || $this->parseEmbeddedParameter())
+            && $this->matchToIncompleteParameter($request)
         ) {
             return true;
         }
 
         try {
-            $this->parser->accept($request->getTokenType());
+            $this->parser->accept($request->getToken());
         } catch (ParserException $e) {
             return false;
         }
@@ -190,8 +200,17 @@ class Route
     }
 
     /**
+     * @return void
+     */
+    public function debug() : string
+    {
+        return $this->parser->debug();
+    }
+
+    /**
      * @param  Map  $config
      * @return void
+     * @throws ConfigurationException On no controllers or sub-router.
      **/
     private function configure(Map $config) : void
     {
@@ -199,8 +218,13 @@ class Route
         $config = $default_config->merge($config);
 
         check_config(new Set(self::REQUIRED_CONFIG), $config);
+        if (!$config->hasKey('controllers') && !$config->hasKey('sub_router')) {
+            throw new ConfigurationException(
+                "Invalid configuration. Require option 'controllers' or "
+                . "'sub_router'."
+            );
+        }
 
-        // FIXME
         $config->get('parameters')->apply(
             function ($key, $value) {
                 return $value->map(
@@ -211,13 +235,6 @@ class Route
             }
         );
 
-        if (!$config->hasKey('controllers') && !$config->hasKey('sub_router')) {
-            throw new ConfigurationException(
-                "Invalid configuration. Require option 'controllers' or "
-                . "'sub_router'"
-            );
-        }
-
         $this->config = $config;
     }
 
@@ -225,9 +242,10 @@ class Route
      * Parse an embedded parameter out of the route.
      *
      * @return bool
-     * @throws RouterException On invalid parameter type.
+     * @throws RouterException On invalid parameter type or duplicate
+     *                         parameter name.
      */
-    private function parseParameter()
+    private function parseEmbeddedParameter()
     {
         // Embedded parameters are of the form:
         // {name: type}
@@ -237,12 +255,12 @@ class Route
         try {
             $this->parser->accept(Token::OPEN_BRACE);
             $this->parser->optional(Token::SPACE);
-            $name = $this->parser->getTokenValue();
+            $name = $this->parser->getToken()->getValue();
             $this->parser->accept(Token::ALPHA);
             $this->parser->optional(Token::SPACE);
             $this->parser->accept(Token::COLON);
             $this->parser->optional(Token::SPACE);
-            $type = $this->parser->getTokenValue();
+            $type = $this->parser->getToken()->getValue();
             $this->parser->accept(Token::ALPHA);
             $this->parser->optional(Token::SPACE);
             $this->parser->accept(Token::CLOSE_BRACE);
@@ -253,61 +271,82 @@ class Route
         }
 
         if (!$this->config->get('parameters')->hasKey($type)) {
-            throw new RouterException("Invalid parameter type '{$type}'.");
+            throw new RouterException(
+                "Invalid embedded parameter type '{$type}'. "
+                . "In route {$this->getName()}."
+            );
         }
 
-        $this->parameter = new Map();
-        $this->parameter->put('name', $name);
-        $this->parameter->put('type', $type);
-        $this->parameter->put('values', new Vector());
+        if ($this->parameters->hasKey($name)) {
+            throw new RouterException(
+                "Duplicate embedded parameter name '{$name}'. "
+                . "In route {$this->getName()}."
+            );
+        }
+
+        $this->incomplete_parameter = new Map([
+            'name'        => $name,
+            'type'        => $type,
+            'values'      => new Vector(),
+            'token_types' => $this->config->get('parameters')->get($type)
+        ]);
 
         return true;
     }
 
     /**
-     * Match the request against the current parameter.
+     * Match the request against the current incomplete parameter.
      *
      * @param  Parser $request
      * @return bool
      */
-    private function matchParameter(Parser $request) : bool
+    private function matchToIncompleteParameter(Parser $request) : bool
     {
-        $token_types = $this->config->get('parameters')->get(
-            $this->parameter->get('type')
+        // If the current request token type matches the parameter.
+        $valid = $this->incomplete_parameter->get('token_types')->hasValue(
+            $request->getToken()->getType()
         );
 
-        // If the next token in the request matches the type of the parameter.
-        if ($token_types->hasValue($request->getTokenType())) {
-            // Add either the token value or the lexeme.
-            $parameter_value = $request->tokenHasValue()
-                             ? $request->getTokenValue()
-                             : $request->getTokenLexeme();
+        // If the types did not match then the request has moved past the
+        // parameter. Save it. Return false - the current request token is not
+        // part of the parameter.
+        if (!$valid) {
+            $this->saveIncompleteParameter();
 
-            $this->parameter->get('values')->push($parameter_value);
-
-            return true;
+            return false;
         }
 
-        // If the types did not match then save the parsing parameter.
-        $this->saveParameter();
-        return false;
+        // Add either the token value or the lexeme.
+        $this->incomplete_parameter->get('values')->push(
+            $request->getToken()->hasValue()
+            ? $request->getToken()->getValue()
+            : $request->getToken()->getLexeme()
+        );
+
+        return true;
     }
 
-    public function saveParameter() : void
+    /**
+     * Save the current incomplete parameter.
+     *
+     * @param  Parser $request
+     * @return bool
+     */
+    private function saveIncompleteParameter() : void
     {
-        if ($this->parameter === null) {
+        if ($this->incomplete_parameter === null) {
             return;
         }
 
         $this->parameters->put(
-            $this->parameter->get('name'),
+            $this->incomplete_parameter->get('name'),
             new Parameter(
-                $this->parameter->get('name'),
-                $this->parameter->get('type'),
-                $this->parameter->get('values')->join()
+                $this->incomplete_parameter->get('name'),
+                $this->incomplete_parameter->get('type'),
+                $this->incomplete_parameter->get('values')->join()
             )
         );
 
-        $this->parameter = null;
+        $this->incomplete_parameter = null;
     }
 }

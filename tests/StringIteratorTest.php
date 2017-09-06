@@ -6,10 +6,16 @@ use Snout\StringIterator;
 
 class StringIteratorTest extends TestCase
 {
-    public function testWhile() : void
+    public static function stringIteratorProvider() : array
     {
-        $iterator = new StringIterator('foobar');
+        return [[new StringIterator('foobar')]];
+    }
 
+    /**
+     * @dataProvider stringIteratorProvider
+     */
+    public function testWhile(StringIterator $iterator) : void
+    {
         while ($iterator->valid()) {
             $current = $iterator->current();
             $index = $iterator->key();
@@ -41,10 +47,11 @@ class StringIteratorTest extends TestCase
         }
     }
 
-    public function testForeach() : void
+    /**
+     * @dataProvider stringIteratorProvider
+     */
+    public function testForeach(StringIterator $iterator) : void
     {
-        $iterator = new StringIterator('foobar');
-
         foreach ($iterator as $index => $next) {
             switch ($index) {
                 case 0:

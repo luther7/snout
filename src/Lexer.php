@@ -22,7 +22,7 @@ class Lexer
     private $tokens;
 
     /**
-     * @var int $column Char column of last consumed token.
+     * @var int $column Column of the last character of the last consumed token.
      */
     private $column;
 
@@ -50,34 +50,7 @@ class Lexer
     }
 
     /**
-     * @param  $index
-     * @return string
-     */
-    public function getTokenType(int $index = null) : string
-    {
-        return $this->getToken($index)->getType();
-    }
-
-    /**
-     * @param  $index
-     * @return bool
-     */
-    public function tokenHasValue(int $index = null) : bool
-    {
-        return $this->getToken($index)->hasValue();
-    }
-
-    /**
-     * @param  $index
-     * @return mixed
-     */
-    public function getTokenValue(int $index = null)
-    {
-        return $this->getToken($index)->getValue();
-    }
-
-    /**
-     * @return int Token count.
+     * @return int
      */
     public function getTokenCount() : int
     {
@@ -85,7 +58,7 @@ class Lexer
     }
 
     /**
-     * @return int Char count.
+     * @return int
      */
     public function getCharCount() : int
     {
@@ -93,7 +66,7 @@ class Lexer
     }
 
     /**
-     * @return int Char column of last consumed token.
+     * @return int Column of the last character of the last consumed token.
      */
     public function getColumn() : int
     {
@@ -148,60 +121,60 @@ class Lexer
 
         switch ($char) {
             case '/':
-                $this->tokens->push(new Token(Token::FORWARD_SLASH, $char));
-                return;
+                $type = Token::FORWARD_SLASH;
+                break;
 
             case '_':
-                $this->tokens->push(new Token(Token::UNDERSCORE, $char));
-                return;
+                $type = Token::UNDERSCORE;
+                break;
 
             case '-':
-                $this->tokens->push(new Token(Token::HYPHEN, $char));
-                return;
+                $type = Token::HYPHEN;
+                break;
 
             case '.':
-                $this->tokens->push(new Token(Token::PERIOD, $char));
-                return;
+                $type = Token::PERIOD;
+                break;
 
             case ':':
-                $this->tokens->push(new Token(Token::COLON, $char));
-                return;
+                $type = Token::COLON;
+                break;
 
             case '{':
-                $this->tokens->push(new Token(Token::OPEN_BRACE, $char));
-                return;
+                $type = Token::OPEN_BRACE;
+                break;
 
             case '}':
-                $this->tokens->push(new Token(Token::CLOSE_BRACE, $char));
-                return;
+                $type = Token::CLOSE_BRACE;
+                break;
 
             case '[':
-                $this->tokens->push(new Token(Token::OPEN_BRACKET, $char));
-                return;
+                $type = Token::OPEN_BRACKET;
+                break;
 
             case ']':
-                $this->tokens->push(new Token(Token::CLOSE_BRACKET, $char));
-                return;
+                $type = Token::CLOSE_BRACKET;
+                break;
 
             case '\\':
-                $this->tokens->push(new Token(Token::BACK_SLASH, $char));
-                return;
+                $type = Token::BACK_SLASH;
+                break;
 
             case ' ':
-                $this->tokens->push(new Token(Token::SPACE, $char));
-                return;
+                $type = Token::SPACE;
+                break;
 
             case "\t":
-                $this->tokens->push(new Token(Token::TAB, $char));
-                return;
+                $type = Token::TAB;
+                break;
 
             case "\n":
-                $this->tokens->push(new Token(Token::NEW_LINE, $char));
-                return;
+                $type = Token::NEW_LINE;
+                break;
 
             case "\r":
-                $this->tokens->push(new Token(Token::CARRIAGE_RETURN, $char));
-                return;
+                $type = Token::CARRIAGE_RETURN;
+                break;
 
             default:
                 throw new ParserException(
@@ -209,6 +182,8 @@ class Lexer
                     . "At {$this->getCharCount()}."
                 );
         }
+
+        $this->tokens->push(new Token($type, $char));
     }
 
     /**
@@ -222,15 +197,15 @@ class Lexer
             }
         );
 
-        return '|' . $values->join('|') . '<' . $this->getTokenCount();
+        return '|' . $values->join('|') . '| ' . $this->getTokenCount();
     }
 
     /**
      * Scan a lexeme - a sequence of chars satisfying a check.
      *
-     * @param  callable $check  Closure to check chars while scanning.
-     * @param  string   $lexeme Scanned lexeme.
-     * @return string           The scanned lexeme.
+     * @param  callable $check
+     * @param  string   $lexeme
+     * @return string
      */
     private function scan(callable $check, string $lexeme = '') : string
     {
@@ -240,13 +215,13 @@ class Lexer
 
         $char = $this->source->current();
 
-        if ($check($char)) {
-            $lexeme .= $char;
-            $this->source->next();
-
-            return $this->scan($check, $lexeme);
+        if (!$check($char)) {
+            return $lexeme;
         }
 
-        return $lexeme;
+        $lexeme .= $char;
+        $this->source->next();
+
+        return $this->scan($check, $lexeme);
     }
 }

@@ -1,6 +1,7 @@
 <?php
 namespace Snout;
 
+use InvalidArgumentException;
 use OutOfRangeException;
 use Ds\Map;
 use Ds\Set;
@@ -16,9 +17,7 @@ class Parser
     /**
      * @const array REQUIRED_CONFIG
      */
-    private const REQUIRED_CONFIG = [
-        'invalid'
-    ];
+    private const REQUIRED_CONFIG = ['invalid'];
 
     /**
      * @var Lexer $lexer
@@ -54,6 +53,7 @@ class Parser
     private function configure(Map $config) : void
     {
         check_config(new Set(self::REQUIRED_CONFIG), $config);
+
         $config->get('invalid')->apply(
             function ($key, $value) {
                 return Token::typeConstant($value);
@@ -81,42 +81,8 @@ class Parser
     }
 
     /**
-     * @param  $index
-     * @return string
-     */
-    public function getTokenType(int $index = null) : string
-    {
-        return $this->getToken($index)->getType();
-    }
-
-    /**
-     * @param  $index
-     * @return string
-     */
-    public function getTokenLexeme(int $index = null) : string
-    {
-        return $this->getToken($index)->getLexeme();
-    }
-
-    /**
-     * @param  $index
-     * @return bool
-     */
-    public function tokenHasValue(int $index = null) : bool
-    {
-        return $this->getToken($index)->hasValue();
-    }
-
-    /**
-     * @param  $index
-     * @return mixed
-     */
-    public function getTokenValue(int $index = null)
-    {
-        return $this->getToken($index)->getValue();
-    }
-
-    /**
+     * Jump to the token at an index. Allows backtracking.
+     *
      * @return void
      */
     public function jump(int $index) : void
@@ -138,50 +104,63 @@ class Parser
     /**
      * @return bool
      */
-    public function isEnd() : bool
+    public function isComplete() : bool
     {
         return $this->getToken()->getType() === Token::END;
     }
 
     /**
-     * Accept token and progress Lexer. Assert optional token type and value.
+     * Accept token and advance Lexer. Assert optional token type and value.
      *
-     * @param  string ?$type  Valid next token type.
-     * @param  mixed  ?$value Valid next token value.
+     * @param  mixed ?$type  String, Token or null.
+     * @param  mixed ?$value
      * @return void
      * @throws ParserException On unexpected token.
      */
-    public function accept(?string $type = null, $value = null) : void
+    public function accept($type = null, $value = null) : void
     {
-        $next_token = $this->getToken();
-        $next_token_type = $next_token->getType();
+        if ($type instanceof Token) {
+            if ($type->hasValue()) {
+                $value = $type->getValue();
+            }
 
-        if ($this->config->get('invalid')->hasValue($next_token_type)) {
+            $type = $type->getType();
+        } elseif (!is_string($type) && $type !== null) {
+            throw new \InvalidArgumentException(
+                'First argument must be a string, instance of \Snout\Token '
+                . 'or null.'
+            );
+        }
+
+        $next = $this->getToken();
+        $next_type = $next->getType();
+
+        if ($this->config->get('invalid')->hasValue($next_type)) {
             throw new ParserException(
-                "Invalid token type '{$next_token_type}'. "
+                "Invalid token type '{$next_type}'. "
                 . "At char {$this->lexer->getColumn()}."
             );
         }
 
-        if ($type !== null && $next_token_type !== $type) {
+        if ($type !== null && $next_type !== $type) {
             throw new ParserException(
-                "Unexpected token type '{$next_token_type}'. "
+                "Unexpected token type '{$next_type}'. "
                 . "Expecting token type '{$type}'. "
                 . "At char {$this->lexer->getColumn()}."
             );
         }
 
         if ($value !== null) {
-            if (!$next_token->hasValue()) {
+            if (!$next->hasValue()) {
                 throw new ParserException(
                     "Expecting '{$value}'. "
                     . "At char {$this->lexer->getColumn()}."
                 );
             }
 
-            if ($next_token->getValue() !== $value) {
+            if ($next->getValue() !== $value) {
                 throw new ParserException(
-                    "Unexpected '{$next_token->getValue()}'. "
+                    "Unexpected '{$next->getValue()}'. "
                     . "Expecting '{$value}'. "
                     . "At char {$this->lexer->getColumn()}."
                 );
@@ -190,15 +169,14 @@ class Parser
 
         // If the index is not null then there was a jump.
         if ($this->index !== null) {
-            // If the index has not caught up with the Lexer then increment.
-            // Return to avoid advancing the Lexer.
             if ($this->index < $this->getLexerIndex()) {
                 $this->index++;
 
+                // Avoid advancing the Lexer.
                 return;
             }
 
-            // Reset the index as it has caught up with the Lexer.
+            // Reset the index - parsing has caught up with the Lexer.
             $this->index = null;
         }
 
@@ -206,7 +184,7 @@ class Parser
     }
 
     /**
-     * Accept optional token.
+     * Optionally accept a token.
      *
      * @param  string ?$type  Token type.
      * @param  mixed  ?$value Token value.
@@ -217,7 +195,7 @@ class Parser
         try {
             $this->accept($type, $value);
         } catch (ParserException $e) {
-            // Allow failures.
+            // Allow Parser failures.
         }
     }
 
@@ -230,6 +208,8 @@ class Parser
     }
 
     /**
+     * Get the Lexer's index. It may differ to the Parser's after a jump.
+     *
      * @return int
      */
     private function getLexerIndex() : int

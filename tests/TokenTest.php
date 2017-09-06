@@ -10,8 +10,9 @@ class TokenTest extends TestCase
     public function test() : void
     {
         $token = new Token(Token::typeConstant('ALPHA'), 'foo', 'foo');
+
         $this->assertEquals(Token::ALPHA, $token->getType());
-        $this->assertEquals(Token::ALPHA, $token->getType());
+        $this->assertEquals('foo', $token->getLexeme());
         $this->assertTrue($token->hasValue());
         $this->assertEquals('foo', $token->getValue());
     }
@@ -22,6 +23,7 @@ class TokenTest extends TestCase
         $this->expectExceptionMessage('Token has no value.');
 
         $token = new Token('/', Token::typeConstant('FORWARD_SLASH'));
+
         $this->assertFalse($token->hasValue());
         $token->getValue();
     }

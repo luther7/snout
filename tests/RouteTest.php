@@ -2,6 +2,7 @@
 namespace Snout\Tests;
 
 use PHPUnit\Framework\TestCase;
+use InvalidArgumentException;
 use Ds\Map;
 use Snout\Exceptions\RouterException;
 use Snout\Exceptions\ConfigurationException;
@@ -12,60 +13,69 @@ use Snout\Parameter;
 
 class RouteTest extends TestCase
 {
-    public function test() : void
+    public static function configProvider() : array
     {
+        $config = \Snout\array_to_map([
+            'invalid' => [
+                'SPACE',
+                'TAB',
+                'NEW_LINE',
+                'CARRIAGE_RETURN'
+            ]
+        ]);
+
+        return [[$config]];
+    }
+
+    /**
+     * @dataProvider configProvider
+     */
+    public function testRoute(Map $config) : void
+    {
+        $routed = false;
+
         $test_parameters = new Map([
             'id'   => new Parameter('id', 'int', 12),
             'name' => new Parameter('name', 'string', 'luther')
         ]);
 
-        $routed = false;
+        $get = function ($result_parameters) use ($test_parameters, &$routed) {
+            $routed = true;
 
-        $test_controllers = new Map();
-        $test_controllers->put(
-            'get',
-            function (Map $parameters) use ($test_parameters, &$routed) {
-                $test_parameters->map(
-                    function ($name, $parameter) use ($parameters) {
-                        $this->assertTrue($parameters->hasKey($name));
-                        $this->assertTrue(
-                            $parameter->compare($parameters->get($name))
-                        );
-                    }
-                );
-                $routed = true;
-            }
-        );
-
+            $test_parameters->map(
+                function ($name, $parameter) use ($result_parameters) {
+                    $this->assertTrue(
+                        $result_parameters->hasKey($name)
+                    );
+                    $this->assertTrue(
+                        $parameter->compare($result_parameters->get($name))
+                    );
+                }
+            );
+        };
 
         $route = new Route([
             'name'        => 'test_route',
             'path'        => '/user/{id: int}/name/{name: string}',
-            'controllers' => $test_controllers
+            'controllers' => new Map(['get' => $get])
         ]);
 
+        $this->assertEquals('test_route', $route->getName());
         $this->assertEquals(
             '/user/{id: int}/name/{name: string}',
             $route->getPath()
         );
 
-        $this->assertEquals('test_route', $route->getName());
         $this->assertTrue($route->hasController('get'));
+        $this->assertFalse($route->hasController('post'));
         $this->assertFalse($route->hasSubRouter());
 
         $request = new Parser(
-            \Snout\array_to_map([
-                'invalid' => [
-                    'SPACE',
-                    'TAB',
-                    'NEW_LINE',
-                    'CARRIAGE_RETURN'
-                ]
-            ]),
+            $config,
             new Lexer('/user/12/name/luther')
         );
 
-        while (!$request->isEnd()) {
+        while (!$request->isComplete()) {
             $this->assertTrue($route->match($request));
             $request->accept();
         }
@@ -78,103 +88,160 @@ class RouteTest extends TestCase
             }
         );
 
-        $route->runController('get');
+        $controller = $route->getController('get');
+        $controller($parameters);
 
         $this->assertTrue($routed);
         $this->assertTrue($route->isComplete());
     }
 
-    // public function testUnmatchingRoute() : void
-    // {
-    //     $route = new Route([
-    //         'name'        => 'test_route',
-    //         'path'        => '/user/{id: int}/name/{name: string}',
-    //         'controllers' => new Map()
-    //     ]);
+    /**
+     * @dataProvider configProvider
+     */
+    public function testUnmatchingRoute(Map $config) : void
+    {
+        $route = new Route([
+            'name'        => 'test_route',
+            'path'        => '/user/{id: int}/name/{name: string}',
+            'controllers' => new Map()
+        ]);
 
-    //     $request = new Parser(
-    //         \Snout\array_to_map([
-    //             'invalid' => [
-    //                 'SPACE',
-    //                 'TAB',
-    //                 'NEW_LINE',
-    //                 'CARRIAGE_RETURN'
-    //             ]
-    //         ]),
-    //         new Lexer('/foo')
-    //     );
+        $request = new Parser($config, new Lexer('/foo'));
 
-    //     $this->assertTrue($route->match($request));
-    //     $this->assertFalse($route->match($request));
-    //     $this->assertEquals(new Map(), $route->getParameters());
-    // }
+        $this->assertTrue($route->match($request));
+        $this->assertFalse($route->match($request));
+        $this->assertEquals(new Map(), $route->getParameters());
+    }
 
-    // public function testInvalidConfig() : void
-    // {
-    //     $this->expectException(\InvalidArgumentException::class);
-    //     $this->expectExceptionMessage(
-    //         '$config must be an array or instance of \Ds\Map.'
-    //     );
+    /**
+     * @dataProvider configProvider
+     */
+    public function testDebug(Map $config) : void
+    {
+        $route = new Route([
+            'name'        => 'test_route',
+            'path'        => '/user/{id: int}/name/{name: string}',
+            'controllers' => new Map(['get' => ''])
+        ]);
 
-    //     $route = new Route('foo');
-    // }
+        $request = new Parser(
+            $config,
+            new Lexer('/user/12/name/luther')
+        );
 
-    // public function testNoControllerOrSubRouter() : void
-    // {
-    //     $this->expectException(ConfigurationException::class);
-    //     $this->expectExceptionMessage(
-    //         "Invalid configuration. Require option 'controllers' or 'sub_router'"
-    //     );
+        while (!$request->isComplete()) {
+            $this->assertTrue($route->match($request));
+            $request->accept();
+        }
 
-    //     $route = new Route([
-    //         'name'        => 'test_route',
-    //         'path'        => '/user/{id: int}/name/{name: string}'
-    //     ]);
+        $this->assertEquals(
+            '|/|user|/|{|id|:| |int|}|/|name|/|{|name|:| |string|}|| 19',
+            $route->debug()
+        );
+    }
 
-    //     $route->runController('get');
-    // }
+    public function testInvalidConfigType() : void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            '$config must be an array or instance of \Ds\Map.'
+        );
 
-    // public function testUnallowedMethod() : void
-    // {
-    //     $this->expectException(RouterException::class);
-    //     $this->expectExceptionMessage("Method 'get' not allowed.");
+        $route = new Route('foo');
+    }
 
-    //     $route = new Route([
-    //         'name'        => 'test_route',
-    //         'path'        => '/user/{id: int}/name/{name: string}',
-    //         'controllers' => new Map()
-    //     ]);
+    public function testInvalidConfig() : void
+    {
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage(
+            "Invalid configuration. Missing keys: 'path'."
+        );
 
-    //     $this->assertFalse($route->hasController('get'));
-    //     $route->runController('get');
-    // }
+        $route = new Route([]);
+    }
 
-    // public function testInvalidParameterType() : void
-    // {
-    //     $this->expectException(RouterException::class);
-    //     $this->expectExceptionMessage("Invalid parameter type 'invalid'.");
+    public function testNoControllerOrSubRouter() : void
+    {
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage(
+            "Invalid configuration. Require option 'controllers' or 'sub_router'."
+        );
 
-    //     $route = new Route([
-    //         'name'        => 'test_route',
-    //         'path'        => '/invalid/{invalid: invalid}',
-    //         'controllers' => new Map()
-    //     ]);
+        $route = new Route(['path' => 'foo']);
+    }
 
-    //     $request = new Parser(
-    //         \Snout\array_to_map([
-    //             'invalid' => [
-    //                 'SPACE',
-    //                 'TAB',
-    //                 'NEW_LINE',
-    //                 'CARRIAGE_RETURN'
-    //             ]
-    //         ]),
-    //         new Lexer('/invalid/foo')
-    //     );
+    public function testNoControllerForMethod() : void
+    {
+        $this->expectException(RouterException::class);
+        $this->expectExceptionMessage("No controller for method 'get'.");
 
-    //     while (!$request->isEnd()) {
-    //         $this->assertTrue($route->match($request));
-    //         $request->accept();
-    //     }
-    // }
+        $route = new Route([
+            'path'        => 'foo',
+            'controllers' => new Map()
+        ]);
+
+        $this->assertFalse($route->hasController('get'));
+        $controller = $route->getController('get');
+    }
+
+    public function testSubRouterNotFound() : void
+    {
+        $this->expectException(RouterException::class);
+        $this->expectExceptionMessage("Sub-router not found.");
+
+        $route = new Route([
+            'path'        => 'foo',
+            'controllers' => new Map()
+        ]);
+
+        $controller = $route->getSubRouter();
+    }
+
+    /**
+     * @dataProvider configProvider
+     */
+    public function testInvalidEmbeddedParameterType(Map $config) : void
+    {
+        $this->expectException(RouterException::class);
+        $this->expectExceptionMessage(
+            "Invalid embedded parameter type 'invalid'. "
+            . "In route /invalid/{invalid: invalid}."
+        );
+
+        $route = new Route([
+            'path'        => '/invalid/{invalid: invalid}',
+            'controllers' => new Map()
+        ]);
+
+        $request = new Parser($config, new Lexer('/invalid/invalid'));
+
+        while (!$request->isComplete()) {
+            $this->assertTrue($route->match($request));
+            $request->accept();
+        }
+    }
+
+    /**
+     * @dataProvider configProvider
+     */
+    public function testDuplicateParameterName(Map $config) : void
+    {
+        $this->expectException(RouterException::class);
+        $this->expectExceptionMessage(
+            "Duplicate embedded parameter name 'duplicate'. "
+            . "In route /{duplicate: int}/{duplicate: int}."
+        );
+
+        $route = new Route([
+            'path'        => '/{duplicate: int}/{duplicate: int}',
+            'controllers' => new Map()
+        ]);
+
+        $request = new Parser($config, new Lexer('/12/34'));
+
+        while (!$request->isComplete()) {
+            $this->assertTrue($route->match($request));
+            $request->accept();
+        }
+    }
 }
