@@ -126,7 +126,7 @@ class Router
         if ($route->hasController($request->getMethod())) {
             $controller = $route->getController($request->getMethod());
 
-            if ($controller_args == null) {
+            if ($controller_args === null) {
                 $controller($parameters);
             } else {
                 $controller($parameters, $controller_args);
