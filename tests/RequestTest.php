@@ -44,5 +44,4 @@ class RequestTest extends TestCase
 
         $request = new Request('/foo', 'get', 'foo');
     }
-
 }
