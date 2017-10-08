@@ -6,6 +6,7 @@ use Ds\Map;
 use Snout\Exceptions\RouterException;
 use Snout\Parameter;
 use Snout\Route;
+use Snout\Request;
 use Snout\Router;
 
 class RouterTest extends TestCase
@@ -52,9 +53,14 @@ class RouterTest extends TestCase
             'controllers' => new Map()
         ]));
 
-        [$controller, $parameters] = $router->match('/user/21/name/foo', 'get');
-        $controller($parameters);
-
+        $request = new Request('/user/21/name/foo', 'get');
+        $this->assertEquals('get', $request->getMethod());
+        $route = $router->match($request);
+        $this->assertTrue($route->hasController($request->getMethod()));
+        $this->assertFalse($route->hasSubRouter());
+        $controller = $route->getController($request->getMethod());
+        $parameters = $route->getParameters();
+        $controller($route->getParameters());
         $this->assertTrue($routed);
     }
 
@@ -96,21 +102,26 @@ class RouterTest extends TestCase
             ]
         ]));
 
-        [$controller, $parameters] = $router->match('/name/foo[]', 'get');
-        $controller($parameters);
-
+        $request = new Request('/name/foo[]', 'get');
+        $this->assertEquals('get', $request->getMethod());
+        $route = $router->match($request);
+        $this->assertTrue($route->hasController($request->getMethod()));
+        $this->assertFalse($route->hasSubRouter());
+        $controller = $route->getController($request->getMethod());
+        $parameters = $route->getParameters();
+        $controller($route->getParameters());
         $this->assertTrue($routed);
     }
 
     public function testSubRouting() : void
     {
-        $routed = false;
+        $sub_routed = false;
         $test_parameters = new Map([
             'id'   => new Parameter('id', 'int', 21)
         ]);
 
-        $get = function ($result_parameters) use ($test_parameters, &$routed) {
-            $routed = true;
+        $get = function ($result_parameters) use ($test_parameters, &$sub_routed) {
+            $sub_routed = true;
 
             $test_parameters->map(
                 function ($name, $parameter) use ($result_parameters) {
@@ -131,16 +142,36 @@ class RouterTest extends TestCase
             'controllers' => new Map(['get' => $get]),
         ]));
 
+        $routed = false;
         $router = new Router();
         $router->push(new Route([
             'name'       => 'router',
             'path'       => '/user',
+            'controllers' => new Map([
+                'get' => function () use (&$routed) {
+                    $routed = true;
+                }
+            ]),
             'sub_router' => $sub_router
         ]));
 
-        [$controller, $parameters] = $router->match('/user/21', 'get');
-        $controller($parameters);
+        $request = new Request('/user/21', 'get');
+        $this->assertEquals('get', $request->getMethod());
+        $route = $router->match($request);
+        $this->assertTrue($route->hasController($request->getMethod()));
+        $controller = $route->getController($request->getMethod());
+        $parameters = $route->getParameters();
+        $controller($route->getParameters());
 
+        $this->assertTrue($route->hasSubRouter());
+        $sub_router = $route->getSubRouter();
+        $sub_route = $sub_router->match($request);
+        $this->assertTrue($sub_route->hasController($request->getMethod()));
+        $sub_controller = $sub_route->getController($request->getMethod());
+        $parameters->putAll($sub_route->getParameters());
+        $sub_controller($parameters);
+
+        $this->assertTrue($sub_routed);
         $this->assertTrue($routed);
     }
 
@@ -149,7 +180,8 @@ class RouterTest extends TestCase
         $this->expectException(RouterException::class);
         $this->expectExceptionMessage('No routes were specified.');
 
+        $request = new Request('/user/21', 'get');
         $router = new Router();
-        $route = $router->match('/foo', 'get');
+        $route = $router->match($request);
     }
 }

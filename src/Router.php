@@ -4,8 +4,7 @@ namespace Snout;
 use Ds\Map;
 use Ds\Set;
 use Snout\Exceptions\RouterException;
-use Snout\Lexer;
-use Snout\Parser;
+use Snout\Request;
 use Snout\Route;
 
 /**
@@ -14,27 +13,6 @@ use Snout\Route;
 class Router
 {
     /**
-     * @const array DEFAULT_CONFIG
-     */
-    private const DEFAULT_CONFIG = [
-        'request' => [
-            'parser' => [
-                'invalid' => [
-                    'SPACE',
-                    'TAB',
-                    'NEW_LINE',
-                    'CARRIAGE_RETURN'
-                ]
-            ]
-        ]
-    ];
-
-    /**
-     * @var Map $config
-     */
-    private $config;
-
-    /**
      * @var Set $routes
      */
     private $routes;
@@ -42,9 +20,8 @@ class Router
     /**
      * @param array $config
      */
-    public function __construct(array $config = [])
+    public function __construct()
     {
-        $this->config = array_to_map($config + self::DEFAULT_CONFIG);
         $this->routes = new Set();
     }
 
@@ -52,40 +29,25 @@ class Router
      * @param  Route $route
      * @return void
      */
-    public function push(Route $route)
+    public function push(Route $route) : void
     {
         $this->routes->add($route);
     }
 
     /**
-     * @param  string $path              URI path.
-     * @param  string $method            HTTP method.
-     * @param  Parser $request           Request parser.
-     * @param  Map    $parent_parameters Embedded parameters from possible
-     *                                   parent router.
-     * @return array
+     * @param  Request $request
+     * @return Route
      * @throws RouterException On no routes. On no match for route.
      */
-    public function match(
-        string $path,
-        string $method,
-        Parser $request = null,
-        Map $parent_parameters = null
-    ) : array {
+    public function match(Request &$request) : Route
+    {
         if ($this->routes->isEmpty()) {
             throw new RouterException('No routes were specified.');
         }
 
-        if ($request === null) {
-            $request = new Parser(
-                $this->config->get('request')->get('parser'),
-                new Lexer($path)
-            );
-        }
-
         // Eliminate routes until only one remains.
         while ($this->routes->count() !== 1) {
-            if ($request->isComplete()) {
+            if ($request->getParser()->isComplete()) {
                 throw new RouterException(
                     "No match for path '{$path}'. Multiple possible routes."
                 );
@@ -93,61 +55,34 @@ class Router
 
             $this->routes = $this->routes->filter(
                 function ($route) use (&$request) {
-                    return $route->match($request);
+                    return $route->match($request->getParser());
                 }
             );
 
-            $request->accept();
+            $request->getParser()->accept();
         }
 
         $route = $this->routes->first();
 
         // Matching the request to the route as far as possible.
-        while (!$request->isComplete() && $route->match($request)) {
-            $request->accept();
-        }
-
-        // Merge possible embedded parameters from parent routing.
-        $parameters = $route->getParameters();
-        if ($parent_parameters !== null) {
-            // Check for duplicates.
-            $duplicates = $parent_parameters->intersect($parameters)->keys();
-
-            if (!$duplicates->isEmpty()) {
-                throw new RouterException(
-                    "Duplicate embedded parameter name(s) '"
-                    . $missing->join("', '")
-                    . "'. In route {$route->getName()} and parent route."
-                );
-            }
-
-            $parameters = $parent_parameters->merge($parameters);
+        while (!$request->getParser()->isComplete()
+            && $route->match($request->getParser())
+        ) {
+            $request->getParser()->accept();
         }
 
         // If the request and route are fully matched return the controller.
-        if ($request->isComplete() && $route->isComplete()) {
-            return [
-                $route->getController($method),
-                $parameters
-            ];
+        if ($request->getParser()->isComplete() && $route->isComplete()) {
+            return $route;
         }
 
-        // If the request is not fully matched, then the route must be and must
+        // If the request is not fully matched, then the route must be, and must
         // be a route to a sub-controller.
-        if (!$request->isComplete()
+        if (!$request->getParser()->isComplete()
             && $route->isComplete()
             && $route->hasSubRouter()
         ) {
-            // if ($route->hasController($method)) {
-            //     $route->runController($method);
-            // }
-
-            return $route->getSubRouter()->match(
-                $path,
-                $method,
-                $request,
-                $parameters
-            );
+            return $route;
         }
 
         throw new RouterException(
