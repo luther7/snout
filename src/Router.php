@@ -42,14 +42,18 @@ class Router
     public function match(Request &$request) : Route
     {
         if ($this->routes->isEmpty()) {
-            throw new RouterException('No routes were specified.');
+            throw new RouterException(
+                "No match for request '{$request->getPath()}' - "
+                . 'No routes were specified.'
+            );
         }
 
         // Eliminate routes until only one remains.
         while ($this->routes->count() !== 1) {
             if ($request->getParser()->isComplete()) {
                 throw new RouterException(
-                    "No match for path '{$path}'. Multiple possible routes."
+                    "No match for request '{$request->getPath()}' - "
+                    . 'Multiple possible routes.'
                 );
             }
 
@@ -86,8 +90,8 @@ class Router
         }
 
         throw new RouterException(
-            "No match for path '{$path}'. Incomplete match with "
-            . "'{$route->getName()}'."
+            "No match for request '{$request->getPath()}' - "
+            . "Incomplete match with route '{$route->getName()}'."
         );
     }
 
@@ -112,7 +116,7 @@ class Router
             if (!$duplicates->isEmpty()) {
                 throw new RouterException(
                     "Duplicate embedded parameters: '"
-                    . $missing->join("', '") . "'."
+                    . $duplicates->join("', '") . "'."
                 );
             }
 

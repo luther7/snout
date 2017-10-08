@@ -276,10 +276,86 @@ class RouterTest extends TestCase
     public function testNoRoutes() : void
     {
         $this->expectException(RouterException::class);
-        $this->expectExceptionMessage('No routes were specified.');
+        $this->expectExceptionMessage(
+            "No match for request '/user/21' - No routes were specified."
+        );
 
         $request = new Request('/user/21', 'get');
         $router = new Router();
         $route = $router->match($request);
+    }
+
+    public function testMultipleMatches() : void
+    {
+        $this->expectException(RouterException::class);
+        $this->expectExceptionMessage(
+            "No match for request '/foo' - Multiple possible routes."
+        );
+
+        $router = new Router();
+        $router->push(new Route([
+            'path'        => '/foo',
+            'controllers' => new Map()
+        ]));
+
+        $router->push(new Route([
+            'path'        => '/foo',
+            'controllers' => new Map()
+        ]));
+
+        $router->run(new Request('/foo', 'get'));
+    }
+
+    public function testIncompleteMatch() : void
+    {
+        $this->expectException(RouterException::class);
+        $this->expectExceptionMessage(
+            "No match for request '/foobar' - "
+            . "Incomplete match with route 'foo'."
+        );
+
+        $router = new Router();
+        $router->push(new Route([
+            'name'        => 'foo',
+            'path'        => '/foo',
+            'controllers' => new Map()
+        ]));
+
+        $router->run(new Request('/foobar', 'get'));
+    }
+
+    public function testDuplicateParameters() : void
+    {
+        $this->expectException(RouterException::class);
+        $this->expectExceptionMessage(
+            "Duplicate embedded parameters: 'id'."
+        );
+
+        $sub_router = new Router();
+        $sub_router->push(new Route([
+            'name'        => 'sub_router',
+            'path'        => '/{id: int}',
+            'controllers' => new Map([
+                'get' => function ($parameters) {
+                    return;
+                }
+            ])
+        ]));
+
+        $router = new Router();
+        $router->push(new Route([
+            'name'       => 'router',
+            'path'        => '/user/{id: int}',
+            'controllers' => new Map([
+                'get' => function ($parameters) {
+                    return;
+                }
+            ]),
+            'sub_router' => $sub_router
+        ]));
+
+        $router->run(new Request('/user/21/22', 'get'), $arg = 'bar');
+        $this->assertTrue($sub_routed);
+        $this->assertTrue($routed);
     }
 }
