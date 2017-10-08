@@ -2,6 +2,7 @@
 namespace Snout\Tests;
 
 use PHPUnit\Framework\TestCase;
+use InvalidArgumentException;
 use Ds\Map;
 use Ds\Set;
 use Snout\Exceptions\ConfigurationException;
@@ -24,7 +25,20 @@ class FunctionsTest extends TestCase
                    ]),
                    'dog' => 5678,
                    'cat' => 9123
-               ])
+               ]),
+               [
+                   'foo' => 'bar',
+                   'baz' => [
+                       'snap' => [
+                           'pop',
+                           1234,
+                           true,
+                           false
+                       ]
+                   ],
+                   'dog' => 5678,
+                   'cat' => 9123
+               ]
            ]
         ];
     }
@@ -32,23 +46,9 @@ class FunctionsTest extends TestCase
     /**
      * @dataProvider configProvider
      */
-    public function testArrayToMap(Map $test) : void
+    public function testArrayToMap(Map $test, array $raw) : void
     {
-        $result = \Snout\array_to_map([
-            'foo' => 'bar',
-            'baz' => [
-                'snap' => [
-                    'pop',
-                    1234,
-                    true,
-                    false
-                ]
-            ],
-            'dog' => 5678,
-            'cat' => 9123
-        ]);
-
-        $this->assertEquals($test, $result);
+        $this->assertEquals($test, \Snout\array_to_map($raw));
     }
 
     /**
@@ -118,11 +118,36 @@ class FunctionsTest extends TestCase
             "Invalid configuration. Missing keys: 'bar'."
         );
 
-        $this->assertNull(
-            \Snout\check_config(
-                new Set(['bar']),
-                $config = \Snout\json_decode_file(__DIR__ . '/configs/misc.json')
-            )
+        \Snout\check_config(
+            new Set(['bar']),
+            $config = \Snout\json_decode_file(__DIR__ . '/configs/misc.json')
         );
+    }
+
+    /**
+     * @dataProvider configProvider
+     */
+    public function testFormConfigNoDefaults(Map $test, array $raw) : void
+    {
+        $this->assertEquals($test, \Snout\form_config($raw));
+    }
+
+    /**
+     * @dataProvider configProvider
+     */
+    public function testFormConfigDefaults(Map $test, array $raw) : void
+    {
+        $test->put('fizz', 16);
+        $this->assertEquals($test, \Snout\form_config($raw, ['fizz' => 16]));
+    }
+
+    public function testFormConfigInvalid()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            '$config must be an array or an instance of \Ds\Map.'
+        );
+
+        \Snout\form_config('foo');
     }
 }
