@@ -8,6 +8,4 @@ Snout is a PHP request router.
 ### TODO
 
 - Add casting to Parameters.
-- Return controller/Parameters from the Router before sub-routing, if a
-  controller was specified. Allow the Router to then resume and sub-route.
 - Documentation.

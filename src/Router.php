@@ -90,4 +90,51 @@ class Router
             . "'{$route->getName()}'."
         );
     }
+
+    /**
+     * @param  Request $request
+     * @param  mixed   $controller_args
+     * @param  ?Map    $parameters      Parameters passed from parent router.
+     * @return void
+     */
+    public function run(
+        Request $request,
+        $controller_args = null,
+        Map $parameters = null
+    ) : void {
+        $route = $this->match($request);
+
+        if ($parameters === null) {
+            $parameters = $route->getParameters();
+        } else {
+            $duplicates = $parameters->intersect($route->getParameters())->keys();
+
+            if (!$duplicates->isEmpty()) {
+                throw new RouterException(
+                    "Duplicate embedded parameters: '"
+                    . $missing->join("', '") . "'."
+                );
+            }
+
+            $parameters->putAll($route->getParameters());
+        }
+
+        if ($route->hasController($request->getMethod())) {
+            $controller = $route->getController($request->getMethod());
+
+            if ($controller_args == null) {
+                $controller($parameters);
+            } else {
+                $controller($parameters, $controller_args);
+            }
+        }
+
+        if ($route->hasSubRouter()) {
+            $route->getSubRouter()->run(
+                $request,
+                $controller_args,
+                $parameters
+            );
+        }
+    }
 }
