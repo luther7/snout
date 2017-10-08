@@ -175,7 +175,7 @@ class ParserTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage(
-            'First argument must be a string, instance of \Snout\Token or null.'
+            'First argument must be a string, an instance of \Snout\Token or null.'
         );
 
         $parser = new Parser(
