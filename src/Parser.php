@@ -114,8 +114,9 @@ class Parser
      *
      * @param  mixed ?$type  String, Token or null.
      * @param  mixed ?$value
+     * @throws InvalidArgumentException If type is not a string or Token.
+     * @throws ParserException          On unexpected token.
      * @return void
-     * @throws ParserException On unexpected token.
      */
     public function accept($type = null, $value = null) : void
     {
@@ -127,7 +128,7 @@ class Parser
             $type = $type->getType();
         } elseif (!is_string($type) && $type !== null) {
             throw new \InvalidArgumentException(
-                'First argument must be a string, instance of \Snout\Token '
+                'First argument must be a string, an instance of \Snout\Token '
                 . 'or null.'
             );
         }

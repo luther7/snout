@@ -36,8 +36,8 @@ class Request
     private $method;
 
     /**
-     * @param  string $path
-     * @param  string $method
+     * @param  string    $path
+     * @param  string    $method
      * @param  array|Map $config
      * @throws InvalidArgumentException If config is not an array or Map.
      */
@@ -51,7 +51,7 @@ class Request
             $config = array_to_map($config);
         } elseif (!($config instanceof Map)) {
             throw new InvalidArgumentException(
-                '$config must be an array or instance of \Ds\Map.'
+                '$config must be an array or an instance of \Ds\Map.'
             );
         }
 
