@@ -71,7 +71,8 @@ class RouterTest extends TestCase
             'id'   => new Parameter('id', 'int', 21)
         ]);
 
-        $get = function ($result_parameters) use ($test_parameters, &$sub_routed) {
+        $get = function ($result_parameters)
+ use ($test_parameters, &$sub_routed) {
             $sub_routed = true;
 
             $test_parameters->map(
@@ -134,8 +135,9 @@ class RouterTest extends TestCase
             'name' => new Parameter('name', 'string', 'foo')
         ]);
 
-        $get = function ($result_parameters) use ($test_parameters, &$routed) {
+        $get = function ($result_parameters, $arg) use ($test_parameters, &$routed) {
             $routed = true;
+            $this->assertEquals('bar', $arg);
 
             $test_parameters->map(
                 function ($name, $parameter) use ($result_parameters) {
@@ -168,7 +170,7 @@ class RouterTest extends TestCase
             'controllers' => new Map()
         ]));
 
-        $router->run(new Request('/user/21/name/foo', 'get'));
+        $router->run(new Request('/user/21/name/foo', 'get'), 'bar');
         $this->assertTrue($routed);
     }
 
@@ -179,8 +181,9 @@ class RouterTest extends TestCase
             'id'   => new Parameter('id', 'int', 21)
         ]);
 
-        $get = function ($result_parameters) use ($test_parameters, &$sub_routed) {
+        $get = function ($result_parameters, $arg) use ($test_parameters, &$sub_routed) {
             $sub_routed = true;
+            $this->assertEquals('bar', $arg);
 
             $test_parameters->map(
                 function ($name, $parameter) use ($result_parameters) {
@@ -207,14 +210,16 @@ class RouterTest extends TestCase
             'name'       => 'router',
             'path'       => '/user',
             'controllers' => new Map([
-                'get' => function () use (&$routed) {
+                'get' => function ($parameters, $arg) use (&$routed) {
                     $routed = true;
+                    $this->assertTrue($parameters->isEmpty());
+                    $this->assertEquals('bar', $arg);
                 }
             ]),
             'sub_router' => $sub_router
         ]));
 
-        $router->run(new Request('/user/21', 'get'));
+        $router->run(new Request('/user/21', 'get'), $arg = 'bar');
         $this->assertTrue($sub_routed);
         $this->assertTrue($routed);
     }
