@@ -1,6 +1,7 @@
 <?php
 namespace Snout;
 
+use InvalidArgumentException;
 use Ds\Map;
 use Ds\Set;
 use Snout\Exceptions\ConfigurationException;
@@ -53,6 +54,33 @@ function json_decode_file(string $path, bool $assert = true) : ?Map
     }
 
     return array_to_map($contents);
+}
+
+/**
+ * Form a config.
+ *
+ * @param  array|Map $config
+ * @param  array     $default
+ * @return Map
+ * @throws InvalidArgumentException If config is not an array or Map.
+ */
+function form_config($config, array $default = null) : Map
+{
+    if (is_array($config)) {
+        $config = array_to_map($config);
+    } elseif (!($config instanceof Map)) {
+        throw new InvalidArgumentException(
+            '$config must be an array or an instance of \Ds\Map.'
+        );
+    }
+
+    if ($default === null) {
+        return $config;
+    }
+
+    $default_config = array_to_map($default);
+
+    return $default_config->merge($config);
 }
 
 /**

@@ -70,19 +70,30 @@ class Route
 
     /**
      * @param  array|Map $config
-     * @throws InvalidArgumentException If config is not an array or Map.
+     * @throws ConfigurationException On no controllers or sub-router.
      */
     public function __construct($config)
     {
-        if (is_array($config)) {
-            $config = array_to_map($config);
-        } elseif (!($config instanceof Map)) {
-            throw new InvalidArgumentException(
-                '$config must be an array or instance of \Ds\Map.'
+        $config = form_config($config, self::DEFAULT_CONFIG);
+        check_config(new Set(self::REQUIRED_CONFIG), $config);
+        if (!$config->hasKey('controllers') && !$config->hasKey('sub_router')) {
+            throw new ConfigurationException(
+                "Invalid configuration. Require option 'controllers' or "
+                . "'sub_router'."
             );
         }
 
-        $this->configure($config);
+        $config->get('parameters')->apply(
+            function ($key, $value) {
+                return $value->map(
+                    function ($key, $value) {
+                        return Token::typeConstant($value);
+                    }
+                );
+            }
+        );
+
+        $this->config = $config;
 
         $this->parser = new Parser(
             $this->config->get('parser'),
@@ -205,37 +216,6 @@ class Route
     public function debug() : string
     {
         return $this->parser->debug();
-    }
-
-    /**
-     * @param  Map  $config
-     * @return void
-     * @throws ConfigurationException On no controllers or sub-router.
-     **/
-    private function configure(Map $config) : void
-    {
-        $default_config = array_to_map(self::DEFAULT_CONFIG);
-        $config = $default_config->merge($config);
-
-        check_config(new Set(self::REQUIRED_CONFIG), $config);
-        if (!$config->hasKey('controllers') && !$config->hasKey('sub_router')) {
-            throw new ConfigurationException(
-                "Invalid configuration. Require option 'controllers' or "
-                . "'sub_router'."
-            );
-        }
-
-        $config->get('parameters')->apply(
-            function ($key, $value) {
-                return $value->map(
-                    function ($key, $value) {
-                        return Token::typeConstant($value);
-                    }
-                );
-            }
-        );
-
-        $this->config = $config;
     }
 
     /**

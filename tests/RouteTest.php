@@ -144,7 +144,7 @@ class RouteTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage(
-            '$config must be an array or instance of \Ds\Map.'
+            '$config must be an array or an instance of \Ds\Map.'
         );
 
         $route = new Route('foo');
