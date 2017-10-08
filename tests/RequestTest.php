@@ -10,6 +10,18 @@ use Snout\Request;
 
 class RequestTest extends TestCase
 {
+    public function testGetPath() : void
+    {
+        $request = new Request('/foo', 'post');
+        $this->assertEquals('/foo', $request->getPath());
+    }
+
+    public function testGetMethod() : void
+    {
+        $request = new Request('/foo', 'post');
+        $this->assertEquals('post', $request->getMethod());
+    }
+
     public function testGetParser() : void
     {
         $request = new Request('/foo', 'post');
@@ -27,12 +39,6 @@ class RequestTest extends TestCase
             ),
             $request->getParser()
         );
-    }
-
-    public function testGetMethod() : void
-    {
-        $request = new Request('/foo', 'post');
-        $this->assertEquals('post', $request->getMethod());
     }
 
     public function testInvalidConfigType() : void

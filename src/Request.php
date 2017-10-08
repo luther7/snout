@@ -26,14 +26,19 @@ class Request
     ];
 
     /**
-     * @var Parser $parser
+     * @var string $path
      */
-    private $parser;
+    private $path;
 
     /**
      * @var string $method
      */
     private $method;
+
+    /**
+     * @var Parser $parser
+     */
+    private $parser;
 
     /**
      * @param  string    $path
@@ -43,16 +48,17 @@ class Request
     public function __construct(string $path, string $method, $config = [])
     {
         $config = form_config($config, self::DEFAULT_CONFIG);
+        $this->path = $path;
         $this->method = $method;
         $this->parser = new Parser($config->get('parser'), new Lexer($path));
     }
 
     /**
-     * @return Parser
+     * @return string
      */
-    public function getParser() : Parser
+    public function getPath() : string
     {
-        return $this->parser;
+        return $this->path;
     }
 
     /**
@@ -61,5 +67,13 @@ class Request
     public function getMethod() : string
     {
         return $this->method;
+    }
+
+    /**
+     * @return Parser
+     */
+    public function getParser() : Parser
+    {
+        return $this->parser;
     }
 }
