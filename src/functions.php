@@ -137,7 +137,7 @@ function get_casting_function(string $type) : callable
 
     $caster = $map->get($type);
 
-    return function($value) use ($caster) {
+    return function ($value) use ($caster) {
         if (empty($value)) {
             return null;
         }
