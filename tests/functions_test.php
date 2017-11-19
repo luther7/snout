@@ -174,5 +174,4 @@ class FunctionsTest extends TestCase
 
         \Snout\get_casting_function('foo');
     }
-
 }
