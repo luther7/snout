@@ -7,5 +7,4 @@ Snout is a PHP request router.
 
 ### TODO
 
-- Add casting to Parameters.
 - Documentation.
