@@ -36,29 +36,29 @@ class RouterTest extends TestCase
 
         $router = new Router();
         $router->push(new Route([
-            'name'        => 'should_run',
-            'path'        => '/user/{id: integer}/name/{name: string}',
-            'controllers' => new Map(['get' => $get])
+            'name'       => 'should_run',
+            'path'       => '/user/{id: integer}/name/{name: string}',
+            'controller' => new Map(['get' => $get])
         ]));
 
         $router->push(new Route([
-            'name'        => 'should_not_run_1',
-            'path'        => '/foo',
-            'controllers' => new Map()
+            'name'       => 'should_not_run_1',
+            'path'       => '/foo',
+            'controller' => new Map()
         ]));
 
         $router->push(new Route([
-            'name'        => 'should_not_run_2',
-            'path'        => '/bar',
-            'controllers' => new Map()
+            'name'       => 'should_not_run_2',
+            'path'       => '/bar',
+            'controller' => new Map()
         ]));
 
         $request = new Request('/user/21/name/foo', 'get');
         $this->assertEquals('get', $request->getMethod());
         $route = $router->match($request);
-        $this->assertTrue($route->hasController($request->getMethod()));
+        $this->assertTrue($route->hasControllerForMethod($request->getMethod()));
         $this->assertFalse($route->hasSubRouter());
-        $controller = $route->getController($request->getMethod());
+        $controller = $route->getControllerForMethod($request->getMethod());
         $parameters = $route->getParameters();
         $controller($route->getParameters());
         $this->assertTrue($routed);
@@ -89,9 +89,9 @@ class RouterTest extends TestCase
 
         $sub_router = new Router();
         $sub_router->push(new Route([
-            'name'        => 'sub_router',
-            'path'        => '/{id: integer}',
-            'controllers' => new Map(['get' => $get]),
+            'name'       => 'sub_router',
+            'path'       => '/{id: integer}',
+            'controller' => new Map(['get' => $get]),
         ]));
 
         $routed = false;
@@ -99,7 +99,7 @@ class RouterTest extends TestCase
         $router->push(new Route([
             'name'       => 'router',
             'path'       => '/user',
-            'controllers' => new Map([
+            'controller' => new Map([
                 'get' => function () use (&$routed) {
                     $routed = true;
                 }
@@ -110,16 +110,20 @@ class RouterTest extends TestCase
         $request = new Request('/user/21', 'get');
         $this->assertEquals('get', $request->getMethod());
         $route = $router->match($request);
-        $this->assertTrue($route->hasController($request->getMethod()));
-        $controller = $route->getController($request->getMethod());
+        $this->assertTrue($route->hasControllerForMethod($request->getMethod()));
+        $controller = $route->getControllerForMethod($request->getMethod());
         $parameters = $route->getParameters();
         $controller($route->getParameters());
 
         $this->assertTrue($route->hasSubRouter());
         $sub_router = $route->getSubRouter();
         $sub_route = $sub_router->match($request);
-        $this->assertTrue($sub_route->hasController($request->getMethod()));
-        $sub_controller = $sub_route->getController($request->getMethod());
+        $this->assertTrue(
+            $sub_route->hasControllerForMethod($request->getMethod())
+        );
+        $sub_controller = $sub_route->getControllerForMethod(
+            $request->getMethod()
+        );
         $parameters->putAll($sub_route->getParameters());
         $sub_controller($parameters);
 
@@ -153,21 +157,21 @@ class RouterTest extends TestCase
 
         $router = new Router();
         $router->push(new Route([
-            'name'        => 'should_run',
-            'path'        => '/user/{id: integer}/name/{name: string}',
-            'controllers' => new Map(['get' => $get])
+            'name'       => 'should_run',
+            'path'       => '/user/{id: integer}/name/{name: string}',
+            'controller' => new Map(['get' => $get])
         ]));
 
         $router->push(new Route([
-            'name'        => 'should_not_run_1',
-            'path'        => '/foo',
-            'controllers' => new Map()
+            'name'       => 'should_not_run_1',
+            'path'       => '/foo',
+            'controller' => new Map()
         ]));
 
         $router->push(new Route([
-            'name'        => 'should_not_run_2',
-            'path'        => '/bar',
-            'controllers' => new Map()
+            'name'       => 'should_not_run_2',
+            'path'       => '/bar',
+            'controller' => new Map()
         ]));
 
         $router->run(new Request('/user/21/name/foo', 'get'), 'bar');
@@ -199,9 +203,9 @@ class RouterTest extends TestCase
 
         $sub_router = new Router();
         $sub_router->push(new Route([
-            'name'        => 'sub_router',
-            'path'        => '/{id: integer}',
-            'controllers' => new Map(['get' => $get]),
+            'name'       => 'sub_router',
+            'path'       => '/{id: integer}',
+            'controller' => new Map(['get' => $get]),
         ]));
 
         $routed = false;
@@ -209,7 +213,7 @@ class RouterTest extends TestCase
         $router->push(new Route([
             'name'       => 'router',
             'path'       => '/user',
-            'controllers' => new Map([
+            'controller' => new Map([
                 'get' => function ($parameters, $arg) use (&$routed) {
                     $routed = true;
                     $this->assertTrue($parameters->isEmpty());
@@ -248,9 +252,9 @@ class RouterTest extends TestCase
 
         $router = new Router();
         $router->push(new Route([
-            'name'        => 'should_run',
-            'path'        => '/name/{name: label}',
-            'controllers' => new Map(['get' => $get]),
+            'name'       => 'should_run',
+            'path'       => '/name/{name: label}',
+            'controller' => new Map(['get' => $get]),
             'parameters' => [
                 'label' => [
                     'tokens' => [
@@ -268,9 +272,9 @@ class RouterTest extends TestCase
         $request = new Request('/name/foo[]', 'get');
         $this->assertEquals('get', $request->getMethod());
         $route = $router->match($request);
-        $this->assertTrue($route->hasController($request->getMethod()));
+        $this->assertTrue($route->hasControllerForMethod($request->getMethod()));
         $this->assertFalse($route->hasSubRouter());
-        $controller = $route->getController($request->getMethod());
+        $controller = $route->getControllerForMethod($request->getMethod());
         $parameters = $route->getParameters();
         $controller($route->getParameters());
         $this->assertTrue($routed);
@@ -297,13 +301,13 @@ class RouterTest extends TestCase
 
         $router = new Router();
         $router->push(new Route([
-            'path'        => '/foo',
-            'controllers' => new Map()
+            'path'       => '/foo',
+            'controller' => new Map()
         ]));
 
         $router->push(new Route([
-            'path'        => '/foo',
-            'controllers' => new Map()
+            'path'       => '/foo',
+            'controller' => new Map()
         ]));
 
         $router->run(new Request('/foo', 'get'));
@@ -319,9 +323,9 @@ class RouterTest extends TestCase
 
         $router = new Router();
         $router->push(new Route([
-            'name'        => 'foo',
-            'path'        => '/foo',
-            'controllers' => new Map()
+            'name'       => 'foo',
+            'path'       => '/foo',
+            'controller' => new Map()
         ]));
 
         $router->run(new Request('/foobar', 'get'));
@@ -336,9 +340,9 @@ class RouterTest extends TestCase
 
         $sub_router = new Router();
         $sub_router->push(new Route([
-            'name'        => 'sub_router',
-            'path'        => '/{id: integer}',
-            'controllers' => new Map([
+            'name'       => 'sub_router',
+            'path'       => '/{id: integer}',
+            'controller' => new Map([
                 'get' => function ($parameters) {
                     return;
                 }
@@ -348,8 +352,8 @@ class RouterTest extends TestCase
         $router = new Router();
         $router->push(new Route([
             'name'       => 'router',
-            'path'        => '/user/{id: integer}',
-            'controllers' => new Map([
+            'path'       => '/user/{id: integer}',
+            'controller' => new Map([
                 'get' => function ($parameters) {
                     return;
                 }

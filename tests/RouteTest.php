@@ -62,15 +62,15 @@ class RouteTest extends TestCase
               . '/amount/{amount: float}';
 
         $route = new Route([
-            'name'        => 'test_route',
-            'path'        => $path,
-            'controllers' => new Map(['get' => $get])
+            'name'       => 'test_route',
+            'path'       => $path,
+            'controller' => new Map(['get' => $get])
         ]);
 
         $this->assertEquals('test_route', $route->getName());
         $this->assertEquals($path, $route->getPath());
-        $this->assertTrue($route->hasController('get'));
-        $this->assertFalse($route->hasController('post'));
+        $this->assertTrue($route->hasControllerForMethod('get'));
+        $this->assertFalse($route->hasControllerForMethod('post'));
         $this->assertFalse($route->hasSubRouter());
 
         $request = new Parser(
@@ -91,7 +91,77 @@ class RouteTest extends TestCase
             }
         );
 
-        $controller = $route->getController('get');
+        $controller = $route->getControllerForMethod('get');
+        $controller($parameters);
+
+        $this->assertTrue($routed);
+        $this->assertTrue($route->isComplete());
+    }
+
+    /**
+     * @dataProvider configProvider
+     */
+    public function testNonMethodMapController(Map $config) : void
+    {
+        $routed = false;
+
+        $test_parameters = new Map([
+            'id'     => new Parameter('id', 'integer', 12),
+            'name'   => new Parameter('name', 'string', 'luther'),
+            'new'    => new Parameter('new', 'boolean', true),
+            'amount' => new Parameter('amount', 'float', 1.23)
+        ]);
+
+        $controller = function ($result_parameters) use ($test_parameters, &$routed) {
+            $routed = true;
+
+            $test_parameters->map(
+                function ($name, $parameter) use ($result_parameters) {
+                    $this->assertTrue(
+                        $result_parameters->hasKey($name)
+                    );
+                    $this->assertTrue(
+                        $parameter->compare($result_parameters->get($name))
+                    );
+                }
+            );
+        };
+
+        $path = '/user/{id: integer}'
+              . '/name/{name: string}'
+              . '/new/{new: boolean}'
+              . '/amount/{amount: float}';
+
+        $route = new Route([
+            'name'       => 'test_route',
+            'path'       => $path,
+            'controller' => $controller
+        ]);
+
+        $this->assertEquals('test_route', $route->getName());
+        $this->assertEquals($path, $route->getPath());
+        $this->assertTrue($route->hasController());
+        $this->assertFalse($route->hasSubRouter());
+
+        $request = new Parser(
+            $config,
+            new Lexer('/user/12/name/luther/new/true/amount/1.23')
+        );
+
+        while (!$request->isComplete()) {
+            $this->assertTrue($route->match($request));
+            $request->accept();
+        }
+
+        $parameters = $route->getParameters();
+        $test_parameters->map(
+            function ($name, $parameter) use ($parameters) {
+                $this->assertTrue($parameters->hasKey($name));
+                $this->assertTrue($parameter->compare($parameters->get($name)));
+            }
+        );
+
+        $controller = $route->getController();
         $controller($parameters);
 
         $this->assertTrue($routed);
@@ -104,9 +174,9 @@ class RouteTest extends TestCase
     public function testUnmatchingRoute(Map $config) : void
     {
         $route = new Route([
-            'name'        => 'test_route',
-            'path'        => '/user/{id: integer}/name/{name: string}',
-            'controllers' => new Map()
+            'name'       => 'test_route',
+            'path'       => '/user/{id: integer}/name/{name: string}',
+            'controller' => new Map()
         ]);
 
         $request = new Parser($config, new Lexer('/foo'));
@@ -122,9 +192,9 @@ class RouteTest extends TestCase
     public function testDebug(Map $config) : void
     {
         $route = new Route([
-            'name'        => 'test_route',
-            'path'        => '/user/{id: integer}/name/{name: string}',
-            'controllers' => new Map(['get' => ''])
+            'name'       => 'test_route',
+            'path'       => '/user/{id: integer}/name/{name: string}',
+            'controller' => new Map()
         ]);
 
         $request = new Parser(
@@ -163,14 +233,42 @@ class RouteTest extends TestCase
         $route = new Route([]);
     }
 
+    public function testInvalidParametersConfig() : void
+    {
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage(
+            "Invalid configuration. No tokens specified for parameter 'foo'."
+        );
+
+        $route = new Route([
+            'path'       => '/foo',
+            'controller' => new Map(),
+            'parameters' => ['foo' => []]
+        ]);
+    }
+
     public function testNoControllerOrSubRouter() : void
     {
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage(
-            "Invalid configuration. Require option 'controllers' or 'sub_router'."
+            "Invalid configuration. Require option 'controller' or 'sub_router'."
         );
 
         $route = new Route(['path' => 'foo']);
+    }
+
+    public function testNoController() : void
+    {
+        $this->expectException(RouterException::class);
+        $this->expectExceptionMessage("No controller.");
+
+        $route = new Route([
+            'path'       => 'foo',
+            'sub_router' => new Map()
+        ]);
+
+        $this->assertTrue($route->getController());
+        $controller = $route->getControlle();
     }
 
     public function testNoControllerForMethod() : void
@@ -179,12 +277,12 @@ class RouteTest extends TestCase
         $this->expectExceptionMessage("No controller for method 'get'.");
 
         $route = new Route([
-            'path'        => 'foo',
-            'controllers' => new Map()
+            'path'       => 'foo',
+            'controller' => new Map(['post' => ''])
         ]);
 
-        $this->assertFalse($route->hasController('get'));
-        $controller = $route->getController('get');
+        $this->assertFalse($route->getControllerForMethod('get'));
+        $controller = $route->getControllerForMethod('get');
     }
 
     public function testSubRouterNotFound() : void
@@ -193,8 +291,8 @@ class RouteTest extends TestCase
         $this->expectExceptionMessage("Sub-router not found.");
 
         $route = new Route([
-            'path'        => 'foo',
-            'controllers' => new Map()
+            'path'       => 'foo',
+            'controller' => new Map()
         ]);
 
         $controller = $route->getSubRouter();
@@ -212,8 +310,8 @@ class RouteTest extends TestCase
         );
 
         $route = new Route([
-            'path'        => '/invalid/{invalid: invalid}',
-            'controllers' => new Map()
+            'path'       => '/invalid/{invalid: invalid}',
+            'controller' => new Map()
         ]);
 
         $request = new Parser($config, new Lexer('/invalid/invalid'));
@@ -236,8 +334,8 @@ class RouteTest extends TestCase
         );
 
         $route = new Route([
-            'path'        => '/{duplicate: integer}/{duplicate: integer}',
-            'controllers' => new Map()
+            'path'       => '/{duplicate: integer}/{duplicate: integer}',
+            'controller' => new Map()
         ]);
 
         $request = new Parser($config, new Lexer('/12/34'));

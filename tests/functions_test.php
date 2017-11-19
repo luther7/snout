@@ -150,4 +150,29 @@ class FunctionsTest extends TestCase
 
         \Snout\form_config('foo');
     }
+
+    public function testGetCastingFunction()
+    {
+        $this->assertEquals(
+            'doubleval',
+            \Snout\get_casting_function('float')
+        );
+    }
+
+    public function testGetNullableCastingFunction()
+    {
+        $casting_function = \Snout\get_casting_function('?float');
+
+        $this->assertEquals(2.1, $casting_function('2.1'));
+        $this->assertEquals(null, $casting_function('null'));
+    }
+
+    public function testUnknownCastingType()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Unknown casting type 'foo'");
+
+        \Snout\get_casting_function('foo');
+    }
+
 }

@@ -123,8 +123,8 @@ class Router
             $parameters->putAll($route->getParameters());
         }
 
-        if ($route->hasController($request->getMethod())) {
-            $controller = $route->getController($request->getMethod());
+        if ($route->hasControllerForMethod($request->getMethod())) {
+            $controller = $route->getControllerForMethod($request->getMethod());
 
             if ($controller_args === null) {
                 $controller($parameters);

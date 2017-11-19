@@ -118,15 +118,15 @@ class Route
 
     /**
      * @param  array|Map $config
-     * @throws ConfigurationException On no controllers or sub-router.
+     * @throws ConfigurationException On no controller or sub-router.
      */
     public function __construct($config)
     {
         $config = form_config($config, self::DEFAULT_CONFIG);
         check_config(new Set(self::REQUIRED_CONFIG), $config);
-        if (!$config->hasKey('controllers') && !$config->hasKey('sub_router')) {
+        if (!$config->hasKey('controller') && !$config->hasKey('sub_router')) {
             throw new ConfigurationException(
-                "Invalid configuration. Require option 'controllers' or "
+                "Invalid configuration. Require option 'controller' or "
                 . "'sub_router'."
             );
         }
@@ -194,27 +194,49 @@ class Route
     }
 
     /**
-     * @param  string $method
      * @return bool
      */
-    public function hasController(string $method) : bool
+    public function hasController() : bool
     {
-        return $this->config->hasKey('controllers')
-               && $this->config->get('controllers')->hasKey($method);
+        return $this->config->hasKey('controller');
+    }
+
+    /**
+     * @return mixed
+     * @throws RouterException On no controller.
+     */
+    public function getController()
+    {
+        if (!$this->hasController()) {
+            throw new RouterException("No controller.");
+        }
+
+        return $this->config->get('controller');
     }
 
     /**
      * @param  string $method
-     * @return mixed  $controller
+     * @return bool
+     */
+    public function hasControllerForMethod(string $method) : bool
+    {
+        return $this->hasController() && $this->getController()->hasKey($method);
+    }
+
+    /**
+     * @param  string $method
+     * @return mixed
      * @throws RouterException On no controller for method.
      */
-    public function getController(string $method)
+    public function getControllerForMethod(string $method)
     {
-        if (!$this->hasController($method)) {
-            throw new RouterException("No controller for method '{$method}'.");
+        if (!$this->hasControllerForMethod($method)) {
+            throw new RouterException(
+                "No controller for method '{$method}'."
+            );
         }
 
-        return $this->config->get('controllers')->get($method);
+        return $this->getController()->get($method);
     }
 
     /**

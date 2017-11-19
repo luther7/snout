@@ -107,7 +107,7 @@ function check_config(Set $required, Map $config) : void
 /**
  * @param  string   $type
  * @return callable Casting function.
- * @throws ConfigException On invalid cast type.
+ * @throws InvalidArgumentException On invalid cast type.
  */
 function get_casting_function(string $type) : callable
 {
@@ -128,7 +128,7 @@ function get_casting_function(string $type) : callable
     }
 
     if (!$map->hasKey($type)) {
-        throw new ConfigurationException("Unknown casting type '{$type}'.");
+        throw new InvalidArgumentException("Unknown casting type '{$type}'.");
     }
 
     if (!$nullable) {
@@ -138,7 +138,7 @@ function get_casting_function(string $type) : callable
     $caster = $map->get($type);
 
     return function ($value) use ($caster) {
-        if (empty($value)) {
+        if (empty($value) || $value === 'null') {
             return null;
         }
 
