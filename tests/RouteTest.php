@@ -35,8 +35,10 @@ class RouteTest extends TestCase
         $routed = false;
 
         $test_parameters = new Map([
-            'id'   => new Parameter('id', 'int', 12),
-            'name' => new Parameter('name', 'string', 'luther')
+            'id'     => new Parameter('id', 'integer', 12),
+            'name'   => new Parameter('name', 'string', 'luther'),
+            'new'    => new Parameter('new', 'boolean', true),
+            'amount' => new Parameter('amount', 'float', 1.23)
         ]);
 
         $get = function ($result_parameters) use ($test_parameters, &$routed) {
@@ -54,25 +56,26 @@ class RouteTest extends TestCase
             );
         };
 
+        $path = '/user/{id: integer}'
+              . '/name/{name: string}'
+              . '/new/{new: boolean}'
+              . '/amount/{amount: float}';
+
         $route = new Route([
             'name'        => 'test_route',
-            'path'        => '/user/{id: int}/name/{name: string}',
+            'path'        => $path,
             'controllers' => new Map(['get' => $get])
         ]);
 
         $this->assertEquals('test_route', $route->getName());
-        $this->assertEquals(
-            '/user/{id: int}/name/{name: string}',
-            $route->getPath()
-        );
-
+        $this->assertEquals($path, $route->getPath());
         $this->assertTrue($route->hasController('get'));
         $this->assertFalse($route->hasController('post'));
         $this->assertFalse($route->hasSubRouter());
 
         $request = new Parser(
             $config,
-            new Lexer('/user/12/name/luther')
+            new Lexer('/user/12/name/luther/new/true/amount/1.23')
         );
 
         while (!$request->isComplete()) {
@@ -102,7 +105,7 @@ class RouteTest extends TestCase
     {
         $route = new Route([
             'name'        => 'test_route',
-            'path'        => '/user/{id: int}/name/{name: string}',
+            'path'        => '/user/{id: integer}/name/{name: string}',
             'controllers' => new Map()
         ]);
 
@@ -120,7 +123,7 @@ class RouteTest extends TestCase
     {
         $route = new Route([
             'name'        => 'test_route',
-            'path'        => '/user/{id: int}/name/{name: string}',
+            'path'        => '/user/{id: integer}/name/{name: string}',
             'controllers' => new Map(['get' => ''])
         ]);
 
@@ -135,7 +138,7 @@ class RouteTest extends TestCase
         }
 
         $this->assertEquals(
-            '|/|user|/|{|id|:| |int|}|/|name|/|{|name|:| |string|}|| 19',
+            '|/|user|/|{|id|:| |integer|}|/|name|/|{|name|:| |string|}|| 19',
             $route->debug()
         );
     }
@@ -229,11 +232,11 @@ class RouteTest extends TestCase
         $this->expectException(RouterException::class);
         $this->expectExceptionMessage(
             "Duplicate embedded parameter name 'duplicate'. "
-            . "In route /{duplicate: int}/{duplicate: int}."
+            . "In route /{duplicate: integer}/{duplicate: integer}."
         );
 
         $route = new Route([
-            'path'        => '/{duplicate: int}/{duplicate: int}',
+            'path'        => '/{duplicate: integer}/{duplicate: integer}',
             'controllers' => new Map()
         ]);
 

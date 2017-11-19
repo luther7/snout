@@ -35,14 +35,62 @@ class Route
         ],
         'parameters' => [
             'string' => [
-                'DIGIT',
-                'ALPHA',
-                'UNDERSCORE',
-                'HYPHEN',
-                'PERIOD'
+                'tokens' => [
+                    'DIGIT',
+                    'ALPHA',
+                    'UNDERSCORE',
+                    'HYPHEN',
+                    'PERIOD'
+                ],
+                'cast' => 'string'
             ],
-            'int' => [
-                'DIGIT'
+            'boolean' => [
+                'tokens' => [
+                    'ALPHA'
+                ],
+                'cast' => 'boolean'
+            ],
+            'integer' => [
+                'tokens' => [
+                    'DIGIT'
+                ],
+                'cast' => 'integer'
+            ],
+            'float' => [
+                'tokens' => [
+                    'DIGIT',
+                    'PERIOD'
+                ],
+                'cast' => 'float'
+            ],
+            '?string' => [
+                'tokens' => [
+                    'DIGIT',
+                    'ALPHA',
+                    'UNDERSCORE',
+                    'HYPHEN',
+                    'PERIOD'
+                ],
+                'cast' => '?string'
+            ],
+            '?boolean' => [
+                'tokens' => [
+                    'ALPHA'
+                ],
+                'cast' => '?boolean'
+            ],
+            '?integer' => [
+                'tokens' => [
+                    'DIGIT'
+                ],
+                'cast' => '?integer'
+            ],
+            '?float' => [
+                'tokens' => [
+                    'DIGIT',
+                    'PERIOD'
+                ],
+                'cast' => '?float'
             ]
         ]
     ];
@@ -84,17 +132,32 @@ class Route
         }
 
         $config->get('parameters')->apply(
-            function ($key, $value) {
-                return $value->map(
+            function ($name, $specification) {
+                if (!$specification->hasKey('tokens')) {
+                    throw new ConfigurationException(
+                        "Invalid configuration. No tokens specified for "
+                        . "parameter '{$name}'."
+                    );
+                }
+
+                if ($specification->hasKey('cast')) {
+                    $specification->put(
+                        'cast',
+                        get_casting_function($specification->get('cast'))
+                    );
+                }
+
+                $specification->get('tokens')->apply(
                     function ($key, $value) {
                         return Token::typeConstant($value);
                     }
                 );
+
+                return $specification;
             }
         );
 
         $this->config = $config;
-
         $this->parser = new Parser(
             $this->config->get('parser'),
             new Lexer($this->config->get('path'))
@@ -136,7 +199,7 @@ class Route
      */
     public function hasController(string $method) : bool
     {
-        return $this->config->get('controllers', false)
+        return $this->config->hasKey('controllers')
                && $this->config->get('controllers')->hasKey($method);
     }
 
@@ -229,7 +292,7 @@ class Route
     {
         // Embedded parameters are of the form:
         // {name: type}
-        // eg '{id: int}'
+        // eg '{id: integer}'
         $save_point = $this->parser->getIndex();
 
         try {
@@ -264,11 +327,13 @@ class Route
             );
         }
 
+        $parameter_config = $this->config->get('parameters')->get($type);
         $this->incomplete_parameter = new Map([
-            'name'        => $name,
-            'type'        => $type,
-            'values'      => new Vector(),
-            'token_types' => $this->config->get('parameters')->get($type)
+            'name'   => $name,
+            'type'   => $type,
+            'values' => new Vector(),
+            'tokens' => $parameter_config->get('tokens'),
+            'cast'   => $parameter_config->get('cast') ?? null
         ]);
 
         return true;
@@ -283,7 +348,7 @@ class Route
     private function matchToIncompleteParameter(Parser $request) : bool
     {
         // If the current request token type matches the parameter.
-        $valid = $this->incomplete_parameter->get('token_types')->hasValue(
+        $valid = $this->incomplete_parameter->get('tokens')->hasValue(
             $request->getToken()->getType()
         );
 
@@ -311,6 +376,7 @@ class Route
      *
      * @param  Parser $request
      * @return bool
+     * @throws RouterException On invalid cast type.
      */
     private function saveIncompleteParameter() : void
     {
@@ -318,12 +384,18 @@ class Route
             return;
         }
 
+        $value = $this->incomplete_parameter->get('values')->join();
+
+        if ($this->incomplete_parameter->hasKey('cast')) {
+            $value = $this->incomplete_parameter->get('cast')($value);
+        }
+
         $this->parameters->put(
             $this->incomplete_parameter->get('name'),
             new Parameter(
                 $this->incomplete_parameter->get('name'),
                 $this->incomplete_parameter->get('type'),
-                $this->incomplete_parameter->get('values')->join()
+                $value
             )
         );
 

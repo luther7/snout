@@ -65,7 +65,6 @@ class Parameter
     {
         return $this->name === $other->getName()
                && $this->type === $other->getType()
-               //FIXME with parameter casting.
-               && $this->value == $other->getValue();
+               && $this->value === $other->getValue();
     }
 }

@@ -103,3 +103,45 @@ function check_config(Set $required, Map $config) : void
         "Invalid configuration. Missing keys: '" . $missing->join("', '") . "'."
     );
 }
+
+/**
+ * @param  string   $type
+ * @return callable Casting function.
+ * @throws ConfigException On invalid cast type.
+ */
+function get_casting_function(string $type) : callable
+{
+    $map = new Map([
+        'string'  => 'strval',
+        'integer' => 'intval',
+        'boolean' => 'boolval',
+        'float'   => 'doubleval'
+    ]);
+
+    $nullable = false;
+    $caster = null;
+
+    // Check for '?' prefix which indicates optional 'null'.
+    if (mb_substr($type, 0, 1) == '?') {
+        $nullable = true;
+        $type = mb_substr($type, 1);
+    }
+
+    if (!$map->hasKey($type)) {
+        throw new ConfigurationException("Unknown casting type '{$type}'.");
+    }
+
+    if (!$nullable) {
+        return $map->get($type);
+    }
+
+    $caster = $map->get($type);
+
+    return function($value) use ($caster) {
+        if (empty($value)) {
+            return null;
+        }
+
+        return $caster($value);
+    };
+}

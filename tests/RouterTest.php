@@ -15,7 +15,7 @@ class RouterTest extends TestCase
     {
         $routed = false;
         $test_parameters = new Map([
-            'id'   => new Parameter('id', 'int', 21),
+            'id'   => new Parameter('id', 'integer', 21),
             'name' => new Parameter('name', 'string', 'foo')
         ]);
 
@@ -37,7 +37,7 @@ class RouterTest extends TestCase
         $router = new Router();
         $router->push(new Route([
             'name'        => 'should_run',
-            'path'        => '/user/{id: int}/name/{name: string}',
+            'path'        => '/user/{id: integer}/name/{name: string}',
             'controllers' => new Map(['get' => $get])
         ]));
 
@@ -68,7 +68,7 @@ class RouterTest extends TestCase
     {
         $sub_routed = false;
         $test_parameters = new Map([
-            'id'   => new Parameter('id', 'int', 21)
+            'id'   => new Parameter('id', 'integer', 21)
         ]);
 
         $get = function ($result_parameters)
@@ -90,7 +90,7 @@ class RouterTest extends TestCase
         $sub_router = new Router();
         $sub_router->push(new Route([
             'name'        => 'sub_router',
-            'path'        => '/{id: int}',
+            'path'        => '/{id: integer}',
             'controllers' => new Map(['get' => $get]),
         ]));
 
@@ -131,7 +131,7 @@ class RouterTest extends TestCase
     {
         $routed = false;
         $test_parameters = new Map([
-            'id'   => new Parameter('id', 'int', 21),
+            'id'   => new Parameter('id', 'integer', 21),
             'name' => new Parameter('name', 'string', 'foo')
         ]);
 
@@ -154,7 +154,7 @@ class RouterTest extends TestCase
         $router = new Router();
         $router->push(new Route([
             'name'        => 'should_run',
-            'path'        => '/user/{id: int}/name/{name: string}',
+            'path'        => '/user/{id: integer}/name/{name: string}',
             'controllers' => new Map(['get' => $get])
         ]));
 
@@ -178,7 +178,7 @@ class RouterTest extends TestCase
     {
         $sub_routed = false;
         $test_parameters = new Map([
-            'id'   => new Parameter('id', 'int', 21)
+            'id'   => new Parameter('id', 'integer', 21)
         ]);
 
         $get = function ($result_parameters, $arg) use ($test_parameters, &$sub_routed) {
@@ -200,7 +200,7 @@ class RouterTest extends TestCase
         $sub_router = new Router();
         $sub_router->push(new Route([
             'name'        => 'sub_router',
-            'path'        => '/{id: int}',
+            'path'        => '/{id: integer}',
             'controllers' => new Map(['get' => $get]),
         ]));
 
@@ -253,11 +253,14 @@ class RouterTest extends TestCase
             'controllers' => new Map(['get' => $get]),
             'parameters' => [
                 'label' => [
-                    'DIGIT',
-                    'ALPHA',
-                    'UNDERSCORE',
-                    'OPEN_BRACKET',
-                    'CLOSE_BRACKET'
+                    'tokens' => [
+                        'DIGIT',
+                        'ALPHA',
+                        'UNDERSCORE',
+                        'OPEN_BRACKET',
+                        'CLOSE_BRACKET'
+                    ],
+                    'cast' => 'string'
                 ]
             ]
         ]));
@@ -334,7 +337,7 @@ class RouterTest extends TestCase
         $sub_router = new Router();
         $sub_router->push(new Route([
             'name'        => 'sub_router',
-            'path'        => '/{id: int}',
+            'path'        => '/{id: integer}',
             'controllers' => new Map([
                 'get' => function ($parameters) {
                     return;
@@ -345,7 +348,7 @@ class RouterTest extends TestCase
         $router = new Router();
         $router->push(new Route([
             'name'       => 'router',
-            'path'        => '/user/{id: int}',
+            'path'        => '/user/{id: integer}',
             'controllers' => new Map([
                 'get' => function ($parameters) {
                     return;
