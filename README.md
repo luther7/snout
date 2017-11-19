@@ -21,8 +21,6 @@ Snout is a PHP request router.
 - Extraction and type casting of embedded parameters.
 - Custom embedded parameter types.
 - Combinable route sets allowing sub-routing.
-- Does not rely on regex.
-- Uses the Data Structures extension.
 
 ## Installing
 
