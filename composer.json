@@ -1,5 +1,5 @@
 {
-    "name": "snout/snout",
+    "name": "rubberydub/snout",
     "type": "library",
     "description": "Snout is a PHP request router",
     "keywords": ["http", "rest", "web service", "router"],
