@@ -26,6 +26,7 @@ class StringIteratorTest extends TestCase
                     break;
 
                 case 1:
+                    // fallthrough
                 case 2:
                     $this->assertEquals('o', $current);
                     break;
